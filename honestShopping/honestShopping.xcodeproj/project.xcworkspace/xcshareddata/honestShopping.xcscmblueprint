@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "33A58214152578BF3F7B28D9F277DE1C539AE90E",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "33A58214152578BF3F7B28D9F277DE1C539AE90E" : 0,
+    "B690809AD3AF38DCFC5083EF7CB8844ACACDE51E" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "F6E3B7C4-5EF9-4FD8-8F5D-BCF3A6FC72E5",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "33A58214152578BF3F7B28D9F277DE1C539AE90E" : "honestShopping",
+    "B690809AD3AF38DCFC5083EF7CB8844ACACDE51E" : "honestShoppinghonestShopping"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "honestShopping",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "honestShopping.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/yuxuanmengdie\/honestShoppingBackup.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "33A58214152578BF3F7B28D9F277DE1C539AE90E"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/yuxuanmengdie\/honestShopping.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B690809AD3AF38DCFC5083EF7CB8844ACACDE51E"
+    }
+  ]
+}
