@@ -7,6 +7,8 @@
 //
 
 #import "JSONModel.h"
+#import "HSCommodtyItemModel.h"
+
 
 @interface HSCommodityItemDetailPicModel : JSONModel
 
@@ -47,7 +49,10 @@
 @property (copy, nonatomic) NSString *ordernum;
 @property (copy, nonatomic) NSString *likes;
 @property (strong, nonatomic) NSArray *banner; // 顶部的轮播图
+@property (strong, nonatomic) HSGoodsSourceModel *goods_source;
 
+//购物车数量
+@property (assign, nonatomic) int collectNum;
 
 @end
 

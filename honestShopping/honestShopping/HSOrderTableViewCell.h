@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "HSOrderModel.h"
 
+typedef void(^HSOrderTableViewExpressDetailBlock)(void);
 /// 订单的cell
 @interface HSOrderTableViewCell : UITableViewCell
 
@@ -21,6 +22,11 @@
 @property (weak, nonatomic) IBOutlet UILabel *priceLabel;
 
 @property (weak, nonatomic) IBOutlet UILabel *stateLabel;
+
+@property (weak, nonatomic) IBOutlet UIButton *expressBtn;
+
+
+@property (copy, nonatomic) HSOrderTableViewExpressDetailBlock detailBolok;
 
 - (void)setupWithModel:(HSOrderModel *)orderModel;
 

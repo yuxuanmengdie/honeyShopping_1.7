@@ -14,7 +14,7 @@
 typedef void(^BuyNumBuyBlock)(int);
 
 /// 收藏的block
-typedef void(^BuyNumCollectBlock)(UIButton *sender);
+typedef void(^BuyNumCollectBlock)(UIButton *sender,int);
 
 // 打开购物车
 typedef void(^BuyNumCartBlcok)(void);

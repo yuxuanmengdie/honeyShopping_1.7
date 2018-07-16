@@ -29,29 +29,32 @@
 @property (copy, nonatomic) NSString *seo_title;
 @property (copy, nonatomic) NSString *seo_keys;
 @property (copy, nonatomic) NSString *seo_desc;
-
+@property (copy, nonatomic) NSString *item_img;
 
 @end
 
 /*
-"id": "363",
-"name": "热销",
-"tags": "",
-"pid": "0",
-"spid": "0",
-"img": "",
-"fcolor": "",
-"remark": "",
-"add_time": "0",
-"items": "0",
-"likes": "0",
-"type": "0",
-"ordid": "1",
-"status": "1",
-"is_index": "1",
-"is_default": "0",
-"seo_title": "",
-"seo_keys": "",
-"seo_desc": ""
+ {
+ "id": "351",
+ "name": "果蔬",
+ "tags": "",
+ "pid": "0",
+ "spid": "0",
+ "img": "",
+ "fcolor": "",
+ "remark": "",
+ "add_time": "0",
+ "items": "0",
+ "likes": "0",
+ "type": "0",
+ "ordid": "3",
+ "status": "1",
+ "is_index": "1",
+ "is_default": "0",
+ "seo_title": "",
+ "seo_keys": "",
+ "seo_desc": "",
+ "item_img": "http:\/\/221.226.28.43:9012\/data\/upload\/item_cate\/5a5eb360d8ed7_thumb.jpeg"
+ },
 */
 

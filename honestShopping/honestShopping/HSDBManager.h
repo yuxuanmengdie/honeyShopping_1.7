@@ -64,6 +64,8 @@
 /// 新增单个记录
 + (BOOL)saveCartListWithTableName:(NSString *)tableName keyID:(NSString *)keyID data:(NSDictionary *)dataDic;
 
++ (BOOL)updateCartListWithTableName:(NSString *)tableName keyID:(NSString *)keyID data:(NSDictionary *)dataDic;
+
 ///  查找单个记录
 + (NSDictionary *)selectedItemWithTableName:(NSString *)tableName keyID:(NSString *)keyID;
 

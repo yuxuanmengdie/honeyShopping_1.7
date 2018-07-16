@@ -14,4 +14,6 @@ typedef void(^ HSTabBarActionBlock)(int idx);
 
 @property (copy, nonatomic) HSTabBarActionBlock actionBlock;
 
+- (void)setSelectIndex:(int)index;
+
 @end

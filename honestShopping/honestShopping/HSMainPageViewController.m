@@ -12,6 +12,10 @@
 #import "HSCommodityDetailViewController.h"
 #import "HSSanpinViewController.h"
 #import "HSSearchViewController.h"
+#import "HSDFGViewController.h"
+#import "HSDFGDetailViewController.h"
+#import "UIImageView+WebCache.h"
+#import "HSSuyuanDetailViewController.h"
 
 #import "HSCommodityCategaryCollectionViewCell.h"
 #import "CHTCollectionViewWaterfallLayout.h"
@@ -22,6 +26,7 @@
 #import "HSBannerModel.h"
 #import "HSItemPageModel.h"
 #import "HSCommodtyItemModel.h"
+#import "HSSearchListItemModel.h"
 
 @interface HSMainPageViewController ()<
 UICollectionViewDataSource,
@@ -40,12 +45,17 @@ UISearchBarDelegate>
     
     /// 三品一标
     HSSanpinViewController *_sanpinViewController;
+	
+	/// 地方馆
+	HSDFGViewController *_dfgViewController;
     
     /// 首页 热销
     HSHomeViewController *_homeViewController;
     
     /// 顶部滚动高度约束
     NSLayoutConstraint *_ffScrollViewHeightConstraint;
+	
+	NSArray *_searchList;
     
 }
 
@@ -62,6 +72,10 @@ static NSString *const kCategariesCollectionViewCellIdentifier = @"CommodityCell
 static NSString *const kContentCollectionViewIdentifier = @"contentCollectionViewIdentifier";
 
 static const int kContentViewTag = 1000;
+
+static const int kCateCollectionViewHei = 85;
+
+static const int kcateCellWidth = 70;
 
 
 - (void)viewDidLoad {
@@ -93,8 +107,13 @@ static const int kContentViewTag = 1000;
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     _sanpinViewController = [storyboard instantiateViewControllerWithIdentifier:NSStringFromClass([HSSanpinViewController class])];
     _homeViewController = [storyboard instantiateViewControllerWithIdentifier:NSStringFromClass([HSHomeViewController class])];
+	_dfgViewController = [[HSDFGViewController alloc] init];
     
     [self getCommofityCategaries:nil];
+	[self searchListDataRequest];
+	
+	//self.hidesBottomBarWhenPushed = YES;
+	
     
 }
 
@@ -122,6 +141,7 @@ static const int kContentViewTag = 1000;
     self.navigationController.navigationBar.barTintColor = kAPPTintColor;
     self.navigationController.navigationBar.translucent = NO;
     [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
+	
 }
 
 #pragma mark -
@@ -179,7 +199,7 @@ static const int kContentViewTag = 1000;
         HSCommodityViewController *commodityViewController = [storyboard instantiateViewControllerWithIdentifier:@"commodityViewController"];
         
         HSCategariesModel *cateModel = _categariesArray[j];
-        commodityViewController.cateID = cateModel.id;
+		commodityViewController.cateID = cateModel.id;
         [tmp addObject:commodityViewController];
 
     }
@@ -224,7 +244,7 @@ static const int kContentViewTag = 1000;
 #pragma  mark collectionView dataSource and delegate
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    NSInteger count =_categariesArray.count == 0 ? _categariesArray.count : _categariesArray.count + 2;
+    NSInteger count =_categariesArray.count == 0 ? _categariesArray.count : _categariesArray.count;
     return count;
 }
 
@@ -234,9 +254,10 @@ static const int kContentViewTag = 1000;
 {
     
     HSCategariesModel *model = nil;
-    if (indexPath.row < _categariesArray.count + 1 && indexPath.row > 0) {
-        model = _categariesArray[indexPath.row-1];
-    }
+//    if (indexPath.row < _categariesArray.count + 1 && indexPath.row > 0) {
+//        model = _categariesArray[indexPath.row-1];
+//    }
+	model = _categariesArray[indexPath.row];
     
     if (collectionView == _contentCollectionView) {
         
@@ -263,26 +284,24 @@ static const int kContentViewTag = 1000;
             };
 
         }
-        else if (indexPath.row == _categariesArray.count + 1) { /// 三品一标
+        else if (indexPath.row == _categariesArray.count-1) { /// 地方馆
             
             UIView *subView = [cell.contentView viewWithTag:kContentViewTag];
             if (subView != nil ) {
                 [subView removeFromSuperview];
             }
-            UIView *sView = _sanpinViewController.view;
+            UIView *sView =  _dfgViewController.view;
             sView.tag = kContentViewTag;
             sView.frame =cell.contentView.bounds;
             [cell.contentView addSubview:sView];
             ///push 到商品详情
             __weak typeof(self) wself = self;
-            _sanpinViewController.cellSelectedBlock = ^(HSCommodtyItemModel *itemModel){
+            _dfgViewController.cellSelectedBlock = ^(HSDFGModel *itemModel){
                 
-                __strong typeof(wself) swself = wself;
-                UIStoryboard *storyBorad = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-                HSCommodityDetailViewController *detailVC = [storyBorad instantiateViewControllerWithIdentifier:NSStringFromClass([HSCommodityDetailViewController class])];
-                //detailVC.hidesBottomBarWhenPushed = YES;
-                detailVC.sanpinType = swself->_sanpinViewController.sanpinCategoryType;
-                detailVC.itemModel = itemModel;
+                //__strong typeof(wself) swself = wself;
+				HSDFGDetailViewController *detailVC = [[HSDFGDetailViewController alloc] init];
+                detailVC.model = itemModel;
+				detailVC.hidesBottomBarWhenPushed = true;
                 [wself.navigationController pushViewController:detailVC animated:YES];
             };
 
@@ -290,7 +309,8 @@ static const int kContentViewTag = 1000;
         else
         {
             
-            HSCommodityViewController *commodityVC = _viewControllers[indexPath.row-1];
+           // HSCommodityViewController *commodityVC = _viewControllers[indexPath.row-1];
+			HSCommodityViewController *commodityVC = _viewControllers[indexPath.row];
             UIView *subView = [cell.contentView viewWithTag:kContentViewTag];
             if (subView != nil ) {
                 [subView removeFromSuperview];
@@ -309,6 +329,14 @@ static const int kContentViewTag = 1000;
                 detailVC.itemModel = itemModel;
                 [wself.navigationController pushViewController:detailVC animated:YES];
             };
+			commodityVC.suyuanDetailBlock = ^(HSCommodtyItemModel *itemModel){
+				UIStoryboard *storyBorad = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+				HSSuyuanDetailViewController *detailVC = [storyBorad instantiateViewControllerWithIdentifier:NSStringFromClass([HSSuyuanDetailViewController class])];
+				detailVC.itemModel = itemModel;
+				detailVC.hidesBottomBarWhenPushed = true;
+				[wself.navigationController pushViewController:detailVC animated:YES];
+				//[detailVC setInfo:itemModel];
+			};
             
         }
         
@@ -328,8 +356,8 @@ static const int kContentViewTag = 1000;
         }
         
         if (indexPath.row == 0) {
-            cell.categaryTitleLabel.text = @"热销";
-
+			cell.categaryTitleLabel.text = model.name;//@"热销";
+			[cell.cateImgView sd_setImageWithURL:[NSURL URLWithString:model.item_img]];
         }
         else if (indexPath.row == _categariesArray.count + 1) {
             cell.categaryTitleLabel.text = @"三品一标";
@@ -337,6 +365,7 @@ static const int kContentViewTag = 1000;
         else
         {
             cell.categaryTitleLabel.text = model.name;
+			[cell.cateImgView sd_setImageWithURL:[NSURL URLWithString:model.item_img]];
         }
         
         return cell;
@@ -378,7 +407,7 @@ static const int kContentViewTag = 1000;
         return _contentCollectionView.frame.size;
     }
     
-    return CGSizeMake(70, 40);
+    return CGSizeMake(70, kCateCollectionViewHei);
     
 }
 
@@ -427,7 +456,9 @@ static const int kContentViewTag = 1000;
         [self showReqeustFailedMsg];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+		
         NSString *str = (NSString *)operation.responseString;
+		NSLog(@"kGetCateURL!!!!%@",str);
         if (str.length <= 1) {
             [self hiddenMsg];
             [self getCommofityCategaries:key];
@@ -444,22 +475,36 @@ static const int kContentViewTag = 1000;
         [self hiddenMsg];
         NSError *jsonError = nil;
         id json = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&jsonError];
-//        NSLog(@"!!!!%@",json);
+		
         if ([json isKindOfClass:[NSArray class]] && jsonError == nil) {
             
             NSArray *jsonArray = (NSArray *)json;
             
             NSMutableArray *tmpArray = [[NSMutableArray alloc] init];
+			
             [jsonArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
                 
                 HSCategariesModel *model = [[HSCategariesModel alloc] initWithDictionary:obj error:nil];
+				[tmpArray addObject:model];
+				/*
                 if (![model.name isEqualToString:@"热销"]) { ///去除热销
                     [tmpArray addObject:model];
                 }
+				 */
+				
+				if ([model.name isEqualToString:@"地方馆"]) {
+					_dfgViewController.cid = model.id;
+				}
     
             }];
+			
+			CALayer *TopBorder = [CALayer layer];
+			TopBorder.frame = CGRectMake(0.0f,_topCategariesCollectionView.frame.size.height-0.5f, kcateCellWidth*jsonArray.count, 0.5f);
+			TopBorder.backgroundColor =kAPPTintColor.CGColor;
+			[_topCategariesCollectionView.layer addSublayer:TopBorder];
+			
             _categariesArray = tmpArray;
-            [self commodityViewControllersAddChild:tmpArray.count];
+            [self commodityViewControllersAddChild:tmpArray.count];//去除热销和地方馆
             [_topCategariesCollectionView reloadData];
             [_contentCollectionView reloadData];
         }
@@ -467,12 +512,54 @@ static const int kContentViewTag = 1000;
 
 }
 
+#pragma mark -
+#pragma mark  搜索地域信息列表(搜索栏目条件)
+- (void)searchListDataRequest
+{
+
+	NSDictionary *parametersDic = @{kPostJsonKey:[HSPublic md5Str:[HSPublic getIPAddress:YES]],
+									};
+	// 142346261  123456
+	
+	[self.httpRequestOperationManager POST:kGetSearchListAddrURL parameters:[HSPublic apiPostParas:parametersDic] success:^(AFHTTPRequestOperation *operation, id responseObject) { /// 失败
+		NSLog(@"success\n%@",operation.responseString);
+		
+		
+	} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+		NSLog(@"%s failed\n%@",__func__,operation.responseString);
+		
+		if (operation.responseData == nil) {
+			
+			return ;
+		}
+		NSError *jsonError = nil;
+		id json = [NSJSONSerialization JSONObjectWithData:operation.responseData options:NSJSONReadingMutableContainers error:&jsonError];
+		if (jsonError == nil && [json isKindOfClass:[NSArray class]]) {
+			
+			NSArray *jsonArr = (NSArray *)json;
+			NSMutableArray *tmpArr = [[NSMutableArray alloc] initWithCapacity:jsonArr.count];
+			
+			[jsonArr enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
+				HSSearchListItemModel *model = [[HSSearchListItemModel alloc] initWithDictionary:obj error:nil];
+				[tmpArr addObject:model];
+			}];
+			_searchList = tmpArr;
+			
+		}
+	}];
+	
+}
+
 #pragma mark - 
 #pragma mark searchBar delegate
 - (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
 {
     NSLog(@"%s",__func__);
-    [self pushViewControllerWithIdentifer:NSStringFromClass([HSSearchViewController class])];
+	UIStoryboard *storyBorad = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+	HSSearchViewController *detailVC = [storyBorad instantiateViewControllerWithIdentifier:NSStringFromClass([HSSearchViewController class])];
+	detailVC.searchList = _searchList;
+	[self.navigationController pushViewController:detailVC animated:YES];
+    //[self pushViewControllerWithIdentifer:NSStringFromClass([HSSearchViewController class])];
     return NO;
 }
 
@@ -506,6 +593,20 @@ static const int kContentViewTag = 1000;
          NSLog(@"success!!!!!: %@", str);
     }];
 
+}
+
+- (void)resetCate{
+	NSIndexPath *tmp = _selectedCategary;
+
+	_selectedCategary = [NSIndexPath indexPathForRow:0 inSection:0];;
+	[_topCategariesCollectionView reloadItemsAtIndexPaths:@[tmp]];
+	[_topCategariesCollectionView reloadItemsAtIndexPaths:@[_selectedCategary]];
+	
+	[_topCategariesCollectionView scrollToItemAtIndexPath:_selectedCategary atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:YES];
+	// 是否相邻
+	BOOL isNear = fabs(tmp.row - _selectedCategary.row) == 1 ? YES : NO;
+	[_contentCollectionView scrollToItemAtIndexPath:_selectedCategary atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally animated:isNear];
+	
 }
 
 @end

@@ -10,4 +10,6 @@
 
 @interface HSSearchViewController : HSBaseViewController
 
+@property (strong, nonatomic) NSArray *searchList;
+
 @end

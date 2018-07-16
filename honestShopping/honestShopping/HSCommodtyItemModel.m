@@ -15,5 +15,13 @@
     return YES;
 }
 
+@end
+
+@implementation HSGoodsSourceModel
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+	return YES;
+}
 
 @end

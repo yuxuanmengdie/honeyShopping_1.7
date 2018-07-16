@@ -16,16 +16,20 @@
 #import "FFScrollView.h"
 #import "HSBannerHeaderCollectionReusableView.h"
 #import "UIView+HSLayout.h"
+#import "HSCommodityTableViewCell.h"
 
 #import "HSCommodtyItemModel.h"
 #import "HSItemPageModel.h"
 #import "HSBannerModel.h"
 #import "HSAdItemModel.h"
 
+
 @interface HSCommodityViewController ()<CHTCollectionViewDelegateWaterfallLayout,
 UICollectionViewDataSource,
 UICollectionViewDelegate,
-FFScrollViewDelegate>
+FFScrollViewDelegate,
+UITableViewDelegate,
+UITableViewDataSource>
 {
     /// 保存item所有数量
     HSItemPageModel *_pageModel;
@@ -56,6 +60,9 @@ FFScrollViewDelegate>
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *commodityTopConstraint;
 
 @property (weak, nonatomic) IBOutlet UICollectionView *commdityCollectionView;
+
+@property (strong, nonatomic) UITableView *commdityTableView;
+
 @end
 
 @implementation HSCommodityViewController
@@ -88,7 +95,6 @@ static const int kAdsCellImageViewTag = 600;
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
     [_commdityCollectionView registerNib:[UINib nibWithNibName:NSStringFromClass([HSCommodityCollectionViewCell class]) bundle:nil] forCellWithReuseIdentifier:kCommodityCellIndentifier];
     [_commdityCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:kAdsCellIdentifier];
     if (_isShowBanner)
@@ -117,31 +123,75 @@ static const int kAdsCellImageViewTag = 600;
     
     __weak typeof(self) wself = self;
     
-    [_commdityCollectionView addLegendFooterWithRefreshingBlock:^{
-        __strong typeof(wself) swself = wself;
-        
-        if ([swself->_commdityCollectionView.header isRefreshing]) {
-            [self showHudWithText:@"刷新中..."];
-            [swself->_commdityCollectionView.footer endRefreshing];
-            return ;
-        }
-        NSUInteger page = swself->_itemsData.count/kSizeNum + 1;
-        
-        [wself dataRequestWithWithCid:[HSPublic controlNullString:swself->_cateID] size:kSizeNum key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:page];
-    }];
-    
-    [_commdityCollectionView addLegendHeaderWithRefreshingBlock:^{
-        __strong typeof(wself) swself = wself;
-        if ([swself->_commdityCollectionView.footer isRefreshing]) {
-            [self showHudWithText:@"上拉加载中..."];
-            [swself->_commdityCollectionView.header endRefreshing];
-            return ;
-        }
-        [wself reloadDataWithWithCid:[HSPublic controlNullString:swself->_cateID] size:swself->_itemsData.count key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:1];
-        [wself adsRequestWithCid:[HSPublic controlNullString:swself->_cateID] key:[HSPublic md5Str:[HSPublic getIPAddress:YES]]];
-        
-    }];
+//    [_commdityCollectionView addLegendFooterWithRefreshingBlock:^{
+//        __strong typeof(wself) swself = wself;
+//
+//        if ([swself->_commdityCollectionView.header isRefreshing]) {
+//            [self showHudWithText:@"刷新中..."];
+//            [swself->_commdityCollectionView.footer endRefreshing];
+//            return ;
+//        }
+//        NSUInteger page = swself->_itemsData.count/kSizeNum + 1;
+//
+//        [wself dataRequestWithWithCid:[HSPublic controlNullString:swself->_cateID] size:kSizeNum key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:page];
+//    }];
+//
+//    [_commdityCollectionView addLegendHeaderWithRefreshingBlock:^{
+//        __strong typeof(wself) swself = wself;
+//        if ([swself->_commdityCollectionView.footer isRefreshing]) {
+//            [self showHudWithText:@"上拉加载中..."];
+//            [swself->_commdityCollectionView.header endRefreshing];
+//            return ;
+//        }
+//        [wself reloadDataWithWithCid:[HSPublic controlNullString:swself->_cateID] size:swself->_itemsData.count key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:1];
+//        [wself adsRequestWithCid:[HSPublic controlNullString:swself->_cateID] key:[HSPublic md5Str:[HSPublic getIPAddress:YES]]];
+//
+//    }];
     _isAdsLoding = NO;
+	//return;
+	_commdityCollectionView.hidden = YES;
+	
+	
+	_commdityTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
+	[self.view addSubview:_commdityTableView];
+	[_commdityTableView registerNib:[UINib nibWithNibName:NSStringFromClass([HSCommodityTableViewCell class]) bundle:nil] forCellReuseIdentifier:NSStringFromClass([HSCommodityTableViewCell class])];
+	[_commdityTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+	
+	_commdityTableView.translatesAutoresizingMaskIntoConstraints = NO;
+	NSDictionary *views = NSDictionaryOfVariableBindings(_commdityTableView);
+	NSString *heightVfl = @"V:|-0-[_commdityTableView]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:heightVfl options:0 metrics:nil views:views]];
+	NSString *widthVfl = @"H:|-0-[_commdityTableView]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:widthVfl options:0 metrics:nil views:views]];
+	_commdityTableView.delegate = self;
+	_commdityTableView.dataSource = self;
+	_commdityTableView.tableFooterView = [[UIView alloc] init];
+	
+	[_commdityTableView addLegendFooterWithRefreshingBlock:^{
+		__strong typeof(wself) swself = wself;
+		
+		if ([swself->_commdityTableView.header isRefreshing]) {
+			[swself showHudWithText:@"刷新中..."];
+			[swself->_commdityTableView.footer endRefreshing];
+			return ;
+		}
+		NSUInteger page = swself->_itemsData.count/kSizeNum + 1;
+		
+		[wself dataRequestWithWithCid:[HSPublic controlNullString:swself->_cateID] size:kSizeNum key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:page];
+	}];
+	
+	
+	[_commdityTableView addLegendHeaderWithRefreshingBlock:^{
+		__strong typeof(wself) swself = wself;
+		if ([swself->_commdityTableView.footer isRefreshing]) {
+			[swself showHudWithText:@"上拉加载中..."];
+			[swself->_commdityTableView.header endRefreshing];
+			return ;
+		}
+		[wself reloadDataWithWithCid:[HSPublic controlNullString:swself->_cateID] size:swself->_itemsData.count key:[HSPublic md5Str:[HSPublic getIPAddress:YES]] page:1];
+		//[wself adsRequestWithCid:[HSPublic controlNullString:swself->_cateID] key:[HSPublic md5Str:[HSPublic getIPAddress:YES]]];
+		
+	}];
     
 }
 
@@ -150,7 +200,8 @@ static const int kAdsCellImageViewTag = 600;
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     LogFunc;
-    [_commdityCollectionView reloadData];
+	/*
+    [_commdityTableView reloadData];
     if (_adsData.count == 0 && !_isAdsLoding) {
         [self adsRequestWithCid:[HSPublic controlNullString:_cateID ] key:[HSPublic md5Str:[HSPublic getIPAddress:YES]]];
     }
@@ -158,7 +209,12 @@ static const int kAdsCellImageViewTag = 600;
     if (_itemsData.count == 0 && !_commdityCollectionView.footer.isRefreshing) { /// 数据为空 并且 不在刷新
         [_commdityCollectionView.footer beginRefreshing];
     }
-
+	 */
+	
+	//[_commdityTableView reloadData];
+	if (_itemsData.count == 0 && !_commdityTableView.footer.isRefreshing) { /// 数据为空 并且 不在刷新
+		[_commdityTableView.footer beginRefreshing];
+	}
 }
 
 
@@ -246,7 +302,8 @@ static const int kAdsCellImageViewTag = 600;
 - (void)setItemsData:(NSArray *)itemsData
 {
     _itemsData = (NSArray <HSCommodtyItemModel> *)itemsData;
-    [_commdityCollectionView reloadData];
+    //[_commdityTableView reloadData];
+	[_commdityTableView reloadData];
 }
 
 #pragma mark -
@@ -255,17 +312,18 @@ static const int kAdsCellImageViewTag = 600;
 - (void)dataRequestWithWithCid:(NSString *)cid size:(NSUInteger)size key:(NSString *)key page:(NSUInteger)page
 {
     NSDictionary *parametersDic = @{kPostJsonKey:key,
-                                    kPostJsonCid:[NSNumber numberWithLongLong:[cid longLongValue]],
+                                    kPostJsonCid:cid,
+									kPostJsonAid:[HSPublic controlNullString:self.aid],
                                     kPostJsonSize:[NSNumber numberWithInteger:size],
                                     kPostJsonPage:[NSNumber numberWithInteger:page]};
     
     [self.httpRequestOperationManager POST:kGetItemsByCateURL parameters:[HSPublic apiPostParas:parametersDic] success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"JSON: %@/n %@", responseObject,[HSPublic dictionaryToJson:parametersDic]);
-       [_commdityCollectionView.footer endRefreshing];
+       [_commdityTableView.footer endRefreshing];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         
-        [_commdityCollectionView.footer endRefreshing];
+        [_commdityTableView.footer endRefreshing];
         NSString *str = (NSString *)operation.responseString;
         
         NSData *data =  [str dataUsingEncoding:NSUTF8StringEncoding];
@@ -308,14 +366,15 @@ static const int kAdsCellImageViewTag = 600;
                 
             }
            
-            [_commdityCollectionView reloadData];
+            //[_commdityTableView reloadData];
+			[_commdityTableView reloadData];
             /// 防止请求完了 防止多次请求最后一次 后台数据增加后重置
             if (_pageModel != nil && [pageModel.total intValue] <= _itemsData.count) {
-                [_commdityCollectionView.footer noticeNoMoreData];
+                [_commdityTableView.footer noticeNoMoreData];
             }
             else
             {
-                [_commdityCollectionView.footer resetNoMoreData];
+                [_commdityTableView.footer resetNoMoreData];
             }
 
         }
@@ -328,6 +387,7 @@ static const int kAdsCellImageViewTag = 600;
 {
     NSDictionary *parametersDic = @{kPostJsonKey:key,
                                     kPostJsonCid:[NSNumber numberWithLongLong:[cid longLongValue]],
+									kPostJsonAid:[HSPublic controlNullString:self.aid],
                                     kPostJsonSize:[NSNumber numberWithInteger:size],
                                     kPostJsonPage:[NSNumber numberWithInteger:page]};
     
@@ -338,7 +398,7 @@ static const int kAdsCellImageViewTag = 600;
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"response=%@",operation.responseString);
         
-        [_commdityCollectionView.header endRefreshing];
+        [_commdityTableView.header endRefreshing];
         NSString *str = (NSString *)operation.responseString;
         
         NSData *data =  [str dataUsingEncoding:NSUTF8StringEncoding];
@@ -356,15 +416,15 @@ static const int kAdsCellImageViewTag = 600;
             HSItemPageModel *pageModel = [[HSItemPageModel alloc] initWithDictionary:jsonDic error:nil];
             _pageModel = pageModel;
             _itemsData = pageModel.item_list;
-            [_commdityCollectionView reloadData];
+            [_commdityTableView reloadData];
             
             /// 防止请求完了 防止多次请求最后一次 后台数据增加后重置
             if (_pageModel != nil && [pageModel.total intValue] <= _itemsData.count) {
-                [_commdityCollectionView.footer noticeNoMoreData];
+                [_commdityTableView.footer noticeNoMoreData];
             }
             else
             {
-                [_commdityCollectionView.footer resetNoMoreData];
+                [_commdityTableView.footer resetNoMoreData];
             }
 
         }
@@ -416,10 +476,51 @@ static const int kAdsCellImageViewTag = 600;
                 [tmp addObject:itemModel];
             }];
             _adsData = tmp;
-            [_commdityCollectionView reloadData];
+            [_commdityTableView reloadData];
         }
         
     }];
+
+}
+
+#pragma mark-
+#pragma mark tableView DataSource
+- (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+	return _itemsData.count;
+}
+
+- (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+	
+	HSCommodityTableViewCell *cell = (HSCommodityTableViewCell *)[tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HSCommodityTableViewCell class])];
+	
+	if (cell == nil){
+		cell = [[HSCommodityTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"HSCommodityTableViewCell"];
+	}
+	HSCommodtyItemModel *model = [_itemsData objectAtIndex:indexPath.row];
+	[cell setData:model];
+	typeof(self) wself = self;
+	cell.suyuanDetailBlock = ^(HSCommodtyItemModel *itemModel){
+		if(wself.suyuanDetailBlock){
+			wself.suyuanDetailBlock(itemModel);
+		}
+	};
+	
+	return cell;
+	
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+	return 140;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	
+	HSCommodtyItemModel *itemModel = _itemsData[indexPath.row];
+	/// 点击后委托父控制器push
+	if (self.cellSelectedBlock) {
+		self.cellSelectedBlock(itemModel);
+	}
 
 }
 

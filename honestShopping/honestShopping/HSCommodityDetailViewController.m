@@ -78,7 +78,7 @@ UITableViewDelegate,UMSocialUIDelegate>
 
 static const float kSegmentHei = 40;
 
-static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
+static NSString  *const kTopCellIndentifier = @"detailTopCellIndentifer";
 
 - (void)dealloc
 {
@@ -107,17 +107,18 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
     [self infoTableViewInit];
     [self segmentControlInit];
     [self contentInit];
+	[self detailTableViewInit];
+	[_detailTableView registerNib:[UINib nibWithNibName:NSStringFromClass([HSCommodityDetailTableViewCell class]) bundle:nil] forCellReuseIdentifier:NSStringFromClass([HSCommodityDetailTableViewCell class])];
+	[_detailTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+	[_infoTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kTopCellIndentifier];
+	_detailTableView.separatorStyle = UITableViewCellSelectionStyleNone;
+	_infoTableView.separatorStyle = UITableViewCellSelectionStyleNone;
 
     // kvo 检测 isCollected
     [self addObserver:self forKeyPath:@"isCollected" options:NSKeyValueObservingOptionNew context:nil];
     [self requestDetailByItemID:[HSPublic controlNullString:_itemModel.id]];
     [self buyViewBlock];
-    
-    [_detailTableView registerNib:[UINib nibWithNibName:NSStringFromClass([HSCommodityDetailTableViewCell class]) bundle:nil] forCellReuseIdentifier:NSStringFromClass([HSCommodityDetailTableViewCell class])];
-    [_infoTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kTopCellIndentifier];
-    _detailTableView.separatorStyle = UITableViewCellSelectionStyleNone;
-    _infoTableView.separatorStyle = UITableViewCellSelectionStyleNone;
-    
+	
     [self.view bringSubviewToFront:_buyNumView];
     
 }
@@ -134,6 +135,14 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
     BOOL collect = [HSDBManager selectedItemWithTableName:[HSDBManager tableNameWithUid] keyID:_itemModel.id] == nil ? NO : YES;
     self.isCollected = collect;
     
+}
+
+- (void)detailTableViewInit{
+	[_detailTableView addGifHeaderWithRefreshingTarget:self refreshingAction:@selector(loadToInfo)];
+	[_detailTableView.gifHeader setTitle:@"" forState:MJRefreshHeaderStateIdle];
+	[_detailTableView.gifHeader setTitle:@"" forState:MJRefreshHeaderStatePulling];
+	[_detailTableView.gifHeader setTitle:@"" forState:MJRefreshHeaderStateRefreshing];
+	_detailTableView.gifHeader.updatedTimeHidden = YES;
 }
 
 - (void)infoTableViewInit
@@ -198,9 +207,9 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
     
     _contentScrollView.backgroundColor = ColorRGB(244, 244, 244);
     [_contentScrollView addGifHeaderWithRefreshingTarget:self refreshingAction:@selector(loadToInfo)];
-    [_contentScrollView.gifHeader setTitle:@"拖动查看商品详情" forState:MJRefreshHeaderStateIdle];
-    [_contentScrollView.gifHeader setTitle:@"松开查看商品详情" forState:MJRefreshHeaderStatePulling];
-    [_contentScrollView.gifHeader setTitle:@"松开查看商品详情" forState:MJRefreshHeaderStateRefreshing];
+    [_contentScrollView.gifHeader setTitle:@"拖动查看商品介绍" forState:MJRefreshHeaderStateIdle];
+    [_contentScrollView.gifHeader setTitle:@"松开查看商品介绍" forState:MJRefreshHeaderStatePulling];
+    [_contentScrollView.gifHeader setTitle:@"松开查看商品介绍" forState:MJRefreshHeaderStateRefreshing];
     _contentScrollView.gifHeader.updatedTimeHidden = YES;
     
     _segmentSrcollView = [[UIScrollView alloc] initWithFrame:CGRectZero];
@@ -235,8 +244,8 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
     // _segmentControl 的约束
     [_contentScrollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_segmentControl]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_segmentControl)]];
     [_contentScrollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_segmentControl(40)][_segmentSrcollView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_segmentControl,_segmentSrcollView)]];
-    [_contentScrollView addConstraint:[NSLayoutConstraint constraintWithItem:_segmentControl attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:_contentScrollView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0]];
-    
+//    [_contentScrollView addConstraint:[NSLayoutConstraint constraintWithItem:_segmentControl attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:_contentScrollView attribute:NSLayoutAttributeWidth multiplier:1.0 constant:0]];
+	
     // commentVC.view  和 detailTableViw的约束
     [_segmentSrcollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_detailTableView(==tmpView)][tmpView]|" options:NSLayoutFormatAlignAllTop|NSLayoutFormatAlignAllBottom metrics:nil views:NSDictionaryOfVariableBindings(_detailTableView,tmpView)]];
      [_segmentSrcollView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_detailTableView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_detailTableView,tmpView)]];
@@ -389,6 +398,7 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
 - (void)loadToInfo
 {
     [_contentScrollView.gifHeader endRefreshing];
+	[_detailTableView.gifHeader endRefreshing];
     
     [self.view layoutIfNeeded];
     float hei = CGRectGetMinY(_buyNumView.frame);
@@ -449,7 +459,7 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
         
     };
     
-    _buyNumView.collectBlock = ^(UIButton *collctBtn){ /// 添加到购物车
+    _buyNumView.collectBlock = ^(UIButton *collctBtn,int count){ /// 添加到购物车
         
         __strong typeof(wself) swself = wself;
         if (![HSPublic isLoginInStatus]) {
@@ -457,7 +467,8 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
             [swself pushViewControllerWithIdentifer:NSStringFromClass([HSLoginInViewController class])];
             return ;
         }
-        
+		
+		swself->_detailPicModel.collectNum = count;
         BOOL isSuc = [HSDBManager saveCartListWithTableName:[HSDBManager tableNameWithUid] keyID:swself->_detailPicModel.id data:[swself->_detailPicModel toDictionary]];
         if (isSuc) {
             [swself showHudWithText:@"添加购物车成功"];
@@ -511,7 +522,7 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
         
         NSData *data =  [result dataUsingEncoding:NSUTF8StringEncoding];
         if (data == nil) {
-             [swself showReqeustFailedMsg];
+			[swself showReqeustFailedMsg];
             [swself showHudWithText:@"加载失败"];
             swself.navigationItem.rightBarButtonItem = [swself shareNavItem];
             return ;
@@ -527,6 +538,7 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
             
             if (swself->_detailPicModel.id == nil || jsonError != nil) {
                 [swself showReqeustFailedMsg];
+				[swself placeViewWithImgName:@"icon_logo150x60" text:@"该商品已下架"];
                 return;
             }
             
@@ -538,6 +550,12 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
             swself->_detailTableView.dataSource = swself;
            swself->_detailTableView.delegate = swself;
             [swself->_detailTableView reloadData];
+			//[swself->_detailTableView add]
+			[swself->_detailTableView addLegendFooterWithRefreshingBlock:^{
+				
+			}];
+			
+			 [swself->_detailTableView.footer noticeNoMoreData];
             
             swself->_buyNumView.stepper.maximum = [swself->_detailPicModel.maxbuy intValue];
             
@@ -662,11 +680,11 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
 
 #pragma mark -
 #pragma mark  重新加载
-- (void)reloadRequestData
-{
-    [super reloadRequestData];
-    [self requestDetailByItemID:[HSPublic controlNullString:_itemModel.id]];
-}
+//- (void)reloadRequestData
+//{
+//    [super reloadRequestData];
+//    [self requestDetailByItemID:[HSPublic controlNullString:_itemModel.id]];
+//}
 
 #pragma mark -
 #pragma mark tableview dataSource
@@ -688,7 +706,8 @@ static NSString  *const kTopCellIndentifier = @"topCellIndentifer";
 {
     if (tableView == _infoTableView) {// 顶部轮播图所在的tableviewcell
         
-        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kTopCellIndentifier forIndexPath:indexPath];
+        //UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kTopCellIndentifier forIndexPath:indexPath];
+		 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kTopCellIndentifier];
         HSCommodityItemTopBannerView *headView = (HSCommodityItemTopBannerView *)[cell.contentView viewWithTag:501];
         
         if (headView == nil) {

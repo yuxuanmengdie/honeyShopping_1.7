@@ -15,6 +15,7 @@
     UIView *_bottomView;
     NSLayoutConstraint *_topConstraint;
     NSLayoutConstraint *_outWidConstraint;
+	NSLayoutConstraint *_outHeiConstraint;
 }
 
 @end
@@ -25,9 +26,9 @@ static const float kInsideDis = 2.0;
 
 static const float kOutsideWidth = 14.0;
 
-static const float kNoLastedWidth = 5.0;
+static const float kNoLastedWidth = 10.0;
 
-static const float kLineWidth = 0.5;
+static const float kLineWidth = 1;
 // topView 默认高度
 static const float kTopViewHeight = 8.0;
 
@@ -57,11 +58,13 @@ static const float kTopViewHeight = 8.0;
         _insideView.hidden = NO;
         _topView.hidden = YES;
         _outWidConstraint.constant = kOutsideWidth;
+		_outHeiConstraint.constant = kOutsideWidth;
         
     }else {
         _insideView.hidden = YES;
         _topView.hidden = NO;
         _outWidConstraint.constant = kNoLastedWidth;
+		_outHeiConstraint.constant = kNoLastedWidth;
     }
     [_outsideView layoutIfNeeded];
 }
@@ -92,13 +95,27 @@ static const float kTopViewHeight = 8.0;
     _bottomView.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:_bottomView];
     
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_topView][_outsideView(hei)][_bottomView]|" options:NSLayoutFormatAlignAllCenterX metrics:@{@"hei":[NSNumber numberWithFloat:kOutsideWidth]} views:NSDictionaryOfVariableBindings(_topView,_outsideView,_bottomView)]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_topView][_outsideView][_bottomView]|" options:NSLayoutFormatAlignAllCenterX metrics:@{@"hei":[NSNumber numberWithFloat:kOutsideWidth]} views:NSDictionaryOfVariableBindings(_topView,_outsideView,_bottomView)]];
     _topConstraint = [NSLayoutConstraint constraintWithItem:_topView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kTopViewHeight];
     _outWidConstraint = [NSLayoutConstraint constraintWithItem:_outsideView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kOutsideWidth];
+	_outHeiConstraint = [NSLayoutConstraint constraintWithItem:_outsideView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kOutsideWidth];
     [self addConstraint:_outWidConstraint];
-    [self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:_outsideView  attribute:NSLayoutAttributeLeading multiplier:1.0 constant:kInsideDis]];
+	[self addConstraint:_outHeiConstraint];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kOutsideWidth-2*kInsideDis]];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kOutsideWidth-2*kInsideDis]];
+//    [self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:_outsideView  attribute:NSLayoutAttributeLeading multiplier:1.0 constant:kInsideDis]];
     [self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_outsideView attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_outsideView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterY multiplier:1.0 constant:0]];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_outsideView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
     [self addConstraint:[NSLayoutConstraint constraintWithItem:_insideView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:_outsideView attribute:NSLayoutAttributeCenterY multiplier:1.0 constant:0]];
+	 [self addConstraint:[NSLayoutConstraint constraintWithItem:_topView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_outsideView attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+	 [self addConstraint:[NSLayoutConstraint constraintWithItem:_bottomView attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_outsideView attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0]];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_topView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kLineWidth]];
+	[self addConstraint:[NSLayoutConstraint constraintWithItem:_bottomView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:kLineWidth]];
+	
+	
+	
+	
     
     _outsideView.layer.masksToBounds = YES;
     _outsideView.layer.cornerRadius = kOutsideWidth/2.0;

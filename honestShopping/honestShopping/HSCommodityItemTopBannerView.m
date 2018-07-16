@@ -34,7 +34,7 @@
     
     if (self) {
         
-        _bannerHeight = 330;
+        _bannerHeight = 440;
         
         _bannerView = [[FFScrollView alloc] initWithFrame:CGRectZero];
         _bannerView.translatesAutoresizingMaskIntoConstraints = NO;

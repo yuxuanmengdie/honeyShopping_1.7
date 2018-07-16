@@ -13,6 +13,7 @@
 #import "HSTabBarView.h"
 #import "UIView+HSLayout.h"
 #import "HSBannerModel.h"
+#import "HSMainPageViewController.h"
 
 #import "UIImageView+WebCache.h"
 
@@ -30,9 +31,9 @@
     // Do any additional setup after loading the view.
 
     self.tabBar.selectedImageTintColor =  kAPPTintColor;
+	self.tabBar.tintColor =  kAPPTintColor;
     self.tabBar.translucent = NO;
     [self tabBarViewInit];
-    
 }
 
 - (void)showIntroView
@@ -102,11 +103,25 @@
     __weak typeof(self) wself = self;
     tabView.actionBlock = ^(int idx){
         __strong typeof(wself) swself = wself;
+		
+		if (idx == -1) {
+			UINavigationController *navVC =  (UINavigationController *)self.viewControllers[0];
+			HSMainPageViewController *vc =  (HSMainPageViewController *)(navVC.viewControllers[0]);
+			[vc resetCate];
+			return;
+		}
         
         [swself setSelectedIndex:idx];
     };
 }
 
+
+- (void)tabbarSelectIndex:(int)idx{
+	 HSTabBarView *tabView = [self.view viewWithTag:kTabBarViewTag];
+	[tabView setSelectIndex:idx];
+	
+	[self setSelectedIndex:idx];
+}
 
 - (void)viewWillAppear:(BOOL)animated
 {

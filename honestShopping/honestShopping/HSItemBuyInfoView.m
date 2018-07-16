@@ -41,6 +41,12 @@
 {
     _titleLabel.text = [NSString stringWithFormat:@"%@ %@\n%@",detailModel.title,detailModel.standard,[HSPublic controlNullString:detailModel.intro]];
     _priceLabel.text = [NSString stringWithFormat:@"￥%@",detailModel.price];
+	_goods_source_1.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_1];
+	_goods_source_2.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_2];
+	_goods_source_3.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_3];
+	_goods_source_4.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_4];
+	_goods_source_5.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_5];
+	_goods_source_6.text = [HSPublic controlNullString:detailModel.goods_source.goods_source_6];
 }
 
 

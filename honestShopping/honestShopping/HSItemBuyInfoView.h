@@ -32,6 +32,12 @@ typedef void(^HSItemBuyInfoBuyBlock)(int buyNum);
 
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *titleTrailingConstraint;
 @property (nonatomic, copy) HSItemBuyInfoCollectActionBlock colletActionBlock;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_1;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_2;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_3;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_4;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_5;
+@property (weak, nonatomic) IBOutlet UILabel *goods_source_6;
 
 /// 是否收藏过 修改按钮状态
 - (void)collcetStatus:(BOOL)isCollected;

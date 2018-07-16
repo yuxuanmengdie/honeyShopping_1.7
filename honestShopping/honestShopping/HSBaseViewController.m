@@ -312,17 +312,24 @@ static const int kPlaceViewTag = 5003;
 
 #pragma mark -
 #pragma mark 占位view
-- (void)placeViewWithImgName:(NSString *)imgName text:(NSString *)text
+- (void)placeViewWithImgName:(NSString *)imgName text:(NSString *)text 
 {
     [self removePlaceView];
+	
+	UIView *bcView = [[UIView alloc] init];
+	bcView.backgroundColor = [UIColor whiteColor];
+	bcView.translatesAutoresizingMaskIntoConstraints = NO;
+	bcView.tag = kPlaceViewTag;
+	[self.view addSubview:bcView];
     
     UIView *placeView = [[UIView alloc] init];
     placeView.backgroundColor = [UIColor whiteColor];
     placeView.translatesAutoresizingMaskIntoConstraints = NO;
-    placeView.tag = kPlaceViewTag;
-    [self.view addSubview:placeView];
+    //placeView.tag = kPlaceViewTag;
+    [bcView addSubview:placeView];
     
     UIImageView *imgView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:imgName]];
+	imgView.contentMode = UIViewContentModeScaleAspectFit;
     imgView.translatesAutoresizingMaskIntoConstraints = NO;
     [placeView addSubview:imgView];
     
@@ -336,25 +343,27 @@ static const int kPlaceViewTag = 5003;
     lbl.translatesAutoresizingMaskIntoConstraints = NO;
 
     
-    NSString *vfl1 = @"V:|[imgView]-8-[lbl]|";
-    NSString *vfl2 = @"H:|-(>=0)-[imgView]";
-    NSString *vfl3 = @"H:|-(>=0)-[lbl]|";
-    NSString *vfl4 = @"H:|-(0@250)-[imgView]";
-    NSString *vfl5 = @"H:|-(0@250)-[lbl]";
+    NSString *vfl1 = @"V:|[imgView]-20-[lbl]|";
+    //NSString *vfl2 = @"H:|-(>=0)-[imgView]";
+    //NSString *vfl3 = @"H:|-(>=0)-[lbl]|";
+	NSString *vfl4 = @"H:|-[imgView]-|";
+    NSString *vfl5 = @"H:|-[lbl]-|";
     NSDictionary *dic = NSDictionaryOfVariableBindings(imgView,lbl);
     NSArray *arr1 = [NSLayoutConstraint constraintsWithVisualFormat:vfl1 options:0 metrics:nil views:dic];
-    NSArray *arr2 = [NSLayoutConstraint constraintsWithVisualFormat:vfl2 options:0 metrics:nil views:dic];
-    NSArray *arr3 = [NSLayoutConstraint constraintsWithVisualFormat:vfl3 options:0 metrics:nil views:dic];
+    //NSArray *arr2 = [NSLayoutConstraint constraintsWithVisualFormat:vfl2 options:0 metrics:nil views:dic];
+    //NSArray *arr3 = [NSLayoutConstraint constraintsWithVisualFormat:vfl3 options:0 metrics:nil views:dic];
     NSArray *arr4 = [NSLayoutConstraint constraintsWithVisualFormat:vfl4 options:0 metrics:nil views:dic];
     NSArray *arr5 = [NSLayoutConstraint constraintsWithVisualFormat:vfl5 options:0 metrics:nil views:dic];
     [placeView addConstraints:arr1];
-    [placeView addConstraints:arr2];
-    [placeView addConstraints:arr3];
+    //[placeView addConstraints:arr2];
+    //[placeView addConstraints:arr3];
     [placeView addConstraints:arr4];
     [placeView addConstraints:arr5];
-    [placeView HS_centerXWithSubView:imgView];
-    [placeView HS_centerXWithSubView:lbl];
-    [self.view HS_centerXYWithSubView:placeView];
+    //[placeView HS_centerXWithSubView:imgView];
+    //[placeView HS_centerXWithSubView:lbl];
+	//[placeView HS_centerXWithSubView:lbl];
+    [bcView HS_centerXYWithSubView:placeView];
+	[self.view HS_edgeFillWithSubView:bcView];
     [self.view bringSubviewToFront:placeView];
 }
 

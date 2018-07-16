@@ -208,6 +208,12 @@ UITableViewDelegate>
         
         HSOrderTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HSOrderTableViewCell class]) forIndexPath:indexPath];
         HSOrderModel *model = _unfinishedDataArray[indexPath.row];
+		__weak typeof(self) wself = self;
+		cell.detailBolok = ^(){
+			HSExpressViewController *vc = [[HSExpressViewController alloc] init];
+			vc.orderId = model.orderId;
+			[wself.navigationController pushViewController:vc animated:YES];
+		};
         [cell setupWithModel:model];
         return cell;
         
@@ -216,6 +222,13 @@ UITableViewDelegate>
     {
         HSOrderTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HSOrderTableViewCell class]) forIndexPath:indexPath];
         HSOrderModel *model = _finishedDataArray[indexPath.row];
+		
+		__weak typeof(self) wself = self;
+		cell.detailBolok = ^(){
+			HSExpressViewController *vc = [[HSExpressViewController alloc] init];
+			vc.orderId = model.orderId;
+			[wself.navigationController pushViewController:vc animated:YES];
+		};
         [cell setupWithModel:model];
         return cell;
     }

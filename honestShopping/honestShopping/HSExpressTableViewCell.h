@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "HSExpressProgressView.h"
 
 @class HSExpressProgressView;
 

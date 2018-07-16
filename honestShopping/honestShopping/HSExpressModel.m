@@ -10,4 +10,26 @@
 
 @implementation HSExpressModel
 
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+	return YES;
+}
+
+@end
+
+
+@implementation HSExpressResultModel
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+	return YES;
+}
+@end
+
+@implementation HSExpressListItemModel
+
++ (BOOL)propertyIsOptional:(NSString*)propertyName
+{
+	return YES;
+}
 @end

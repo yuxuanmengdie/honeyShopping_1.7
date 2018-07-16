@@ -10,4 +10,6 @@
 
 @interface HSExpressViewController : HSBaseViewController
 
+@property (copy, nonatomic) NSString *orderId;
+
 @end

@@ -136,17 +136,35 @@ static const int kButtonOriTag = 500;
 {
     int tag = (int)btn.tag - kButtonOriTag;
     
-    if (tag == _lastSelected) {
+    if (tag == _lastSelected && tag != 0) {
         return;
     }
+	
+	
     UIButton *lastBtn = (UIButton *)[self viewWithTag:kButtonOriTag+_lastSelected];
     lastBtn.selected = NO;
     btn.selected = YES;
+	int tmp = _lastSelected;
     _lastSelected = tag;
     
     if (self.actionBlock) {
+		if (tmp == 0 && tag == 0){
+			tag = -1;
+		}
         self.actionBlock(tag);
     }
     
+}
+
+- (void)setSelectIndex:(int)index {
+	if (index + kButtonOriTag == _lastSelected) {
+		return;
+	}
+	UIButton *lastBtn = (UIButton *)[self viewWithTag:kButtonOriTag+_lastSelected];
+	lastBtn.selected = NO;
+	UIButton *btn = (UIButton *)[self viewWithTag:kButtonOriTag+index];
+	btn.selected = YES;
+	_lastSelected = index;
+	
 }
 @end

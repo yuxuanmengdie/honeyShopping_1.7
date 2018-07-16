@@ -8,8 +8,11 @@
 
 #import "HSPayOrderViewController.h"
 #import "Order.h"
-#import "DataSigner.h"
+//#import "DataSigner.h"
+#import "APOrderInfo.h"
+#import "APRSASigner.h"
 #import <AlipaySDK/AlipaySDK.h>
+#import <Foundation/Foundation.h>
 
 #import "UIView+HSLayout.h"
 #import "HSSettleView.h"
@@ -250,6 +253,121 @@ static const int kUpdateOrderMaxCount = 5;
 
 - (void)aliPayWithOrderModel:(HSOrderModel *)orderModel title:(NSString *)title desc:(NSString *)desc
 {
+	// 重要说明
+	// 这里只是为了方便直接向商户展示支付宝的整个支付流程；所以Demo中加签过程直接放在客户端完成；
+	// 真实App里，privateKey等数据严禁放在客户端，加签过程务必要放在服务端完成；
+	// 防止商户私密数据泄露，造成不必要的资金损失，及面临各种安全风险；
+	/*============================================================================*/
+	/*=======================需要填写商户app申请的===================================*/
+	/*============================================================================*/
+	NSString *appID = @"2018050402634776";
+	
+	//NSString *appID = @"2088511141292044"; //宁网科技key
+	
+	// 如下私钥，rsa2PrivateKey 或者 rsaPrivateKey 只需要填入一个
+	// 如果商户两个都设置了，优先使用 rsa2PrivateKey
+	// rsa2PrivateKey 可以保证商户交易在更加安全的环境下进行，建议使用 rsa2PrivateKey
+	// 获取 rsa2PrivateKey，建议使用支付宝提供的公私钥生成工具生成，
+	// 工具地址：https://doc.open.alipay.com/docs/doc.htm?treeId=291&articleId=106097&docType=1
+	NSString *rsa2PrivateKey = @"MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGIhABA5MrF61gh2EZ0OSdbZ2ozlOISpxER0F7LRoIx1gb7jMvtGoNFjvNWyBVbWhJvkwRFv6GrmEXgqXxmE6wFq5MlfZd4lccGuC/4MxYUdkYgJHYwnVRhU101fuOehqhc7oZmwp/vXYCmEeL7dtC4BaL6aLZ1ydqhWtuaZClVKkU147Y+H7XrLwaEmvrMcdGGmMoe9hPBUMo151xGc3Y7HoZwBShElVa1RwNU36W/RJuOKmfGkG9TfjR0skW6CTDuX/J0Vgb8O6V1mDABstpCNlaOwpma7XyKyhK/JB/lGRjLWxHzMmoWHK1TrGkD+0RpXLHE1ZpwxV1vk3pxPmhAgMBAAECggEAY7rpi1kdTueQIbKDMddv+74dScbxTP0hQ00KrNG69QhCVWzE3xJU/1ldqLRhxh5YDCZ5a3DDlU9ZF9hvZvhfQ0tnWK1zYTZ42nC9CFhDA4HPYQH2Z8EaBHqwzkqXYNQda38xAYqE8l+PcybrfIexgiwBrVNg4X3nHTsjJGSGpnDfCzupYqXjYUEsNwlIFpXFbO/gnSr0lk19kE1qyjxuC3GbtkKkMaxyvuKHWYiDKSB3jtlDIUELkfEZNxfrz4mbFTtStOpkWJW0jk7Abj1+XTP82gB958Lj3bvBI1HkfoxhUJuVQ8/cBxlHRzQrMxg5NqB6+ziRVc0LUPgQ/UApcQKBgQD4VaDfh6+RrQEIvljz4Pj1j9VlqS7inpxjy7Htpm4+V1zODc7uvJtSH5PnVDvGPA3GnoLVl/tH6xkwaCt6OhNK94xKxi+7Va3XsENh8GIlfY7KPzJIuZmuGBqPczCC+WvSNx/mAyTYA4Hg3qk9KXscTkh8sSQa6q7TG+5QyNHjlwKBgQDMP7xgTHqjqraF0ZPqVgrI0CXn0nbiH4W+AuLcdpWknYhKa/9YlLbMwjayURq5zSuyoF2Px2QpQrIas9WJmPaqb+b90gSv91Kp2PoIPXQQN2Li0ymZaYQegeDtCPGFfxL/hiDpM9KgmjY4rurYaE1i6nZfMeAcX9U0fZuzFZRThwKBgFWLqc9WvnRAVIreh2X7qcdttOVAUpZebSEzmidznaZ8EcwplY9ICXlQx3J44d538YbqM8fAgx9TLWoveEqyltLMU9euTeMKsMgMQCoM1MJ1birdekTzKq1+QCgKVjvIEAxqUOK7UoXXL3Z3PXWERJSLowzROM7M6Uxv4riRdTwhAoGAMnqKDu633J1DUN1UBjVPowO2ao3cbdRGlIhYEw6Hu1Bnr6TzTawrZX2WUQm0Zjkr1JDHrtIjkgL2y5yoaMJSLBtN5msyV17zoiCK4uB1P9DAcrinbk/ipDuLIGn2bvzR8C7xEVGKe8DBJ88rIWLdxVWW/b3w2nJg2gE1KtRpfR8CgYEAuN5ahPOF6QUG4GA3Xuvrms8p1oju7fHPy+5iMZ6wIMbQwiQgofUlKocmzFwBeXQlcA07YIpa5T8mBsy5ntjalpujT9IDxUjwJSWBSJJxw5kdGT5k6UmG6O2qXINQqOk6NsIYbM8Gv2q71+m8ne29RhgknClI6Mn88Msf5NP+K2k=";
+	//NSString *rsa2PrivateKey = @"MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALWm9S/+ASx0Z/yJVs55PO5MfeqQBuufqtykAwrsLk9kZKxRStfwmVqrHgj3VAMYYEHPYb5//g8C8TXBLfo+w42CLskuFzCYH54Sasc6sPzqF0rFUYL1wjyoFI1XBTU1sCscMLDvs1A39fNX0jtcalw6JIWnbGUEZl7rWXIWq1cZAgMBAAECgYAsz5X2k9toQwMP+jVO0/ui8X2yans6jvXQXild/WtjLGnlVFx5LqI2CrZrEdBIvy+nrGf5XYun2lr0nsYf0HHewI3JlrmkvId29kAsj2hT875rK7qpoYM6kstrvhkGnYZYuwhXGHqkWPRP8Xo2b7lEShvMjpOg0MVYDHkWn23jcQJBAPNR2CuxPcGrQq74BpjLF5v7tzbqImaZceOID8EP8YszT9RlDNvn0d9gE6+cQ/6mXZevtkX8Fw6Kloiz0UtRDFUCQQC/HmZiUkI69E9Dec1KffuJMnFuGoaLQBlzPNFLtnPXohR4L23o2vNzQaqM/QqzlCRUxQzIH7sypUA1qIpI9iO1AkBUw8tqFTntcSsu5yrtKbtU1NET6WcIlSYu3OSYHmTIWJzT4kwjg9QCXGcfQ3IQkYaDZGw8X0DtCOy+PN6JvXdtAkAn2A+iSeHy5oIr4BXThOZO2Qxa1v7bwxZLNw+vSC9ocirwT3sLg7IjgjorQIndnHHill4uzqa5TUhQp32E7oPNAkEAwgkdLtjM83dlpyERok9CULJZlB3Y4j7/4DvwP/LWATeeuFDS3OHyFedWyy44D6CYsWdVxMWb0BWU14pOBbnunw=="; //宁网科技key
+	NSString *rsaPrivateKey = @"";
+	/*============================================================================*/
+	/*============================================================================*/
+	/*============================================================================*/
+	
+	//partner和seller获取失败,提示
+	if ([appID length] == 0 ||
+		([rsa2PrivateKey length] == 0 && [rsaPrivateKey length] == 0))
+	{
+		UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示"
+																	   message:@"缺少appId或者私钥,请检查参数设置"
+																preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction *action = [UIAlertAction actionWithTitle:@"知道了"
+														 style:UIAlertActionStyleDefault
+													   handler:^(UIAlertAction *action){
+														   
+													   }];
+		[alert addAction:action];
+		[self presentViewController:alert animated:YES completion:^{ }];
+		return;
+	}
+	
+	/*
+	 *生成订单信息及签名
+	 */
+	//将商品信息赋予AlixPayOrder的成员变量
+	APOrderInfo* order = [APOrderInfo new];
+	
+	// NOTE: app_id设置
+	order.app_id = appID;
+	
+	// NOTE: 支付接口名称
+	order.method = @"alipay.trade.app.pay";
+	
+	// NOTE: 参数编码格式
+	order.charset = @"utf-8";
+	
+	// NOTE: 当前时间点
+	NSDateFormatter* formatter = [NSDateFormatter new];
+	[formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+	order.timestamp = [formatter stringFromDate:[NSDate date]];
+	
+	// NOTE: 支付版本
+	order.version = @"1.0";
+	
+	// NOTE: sign_type 根据商户设置的私钥来决定
+	order.sign_type = (rsa2PrivateKey.length > 1)?@"RSA2":@"RSA";
+	
+	// NOTE: 商品数据
+	order.biz_content = [APBizContent new];
+	order.biz_content.body = desc;
+	order.biz_content.subject = title;
+	order.biz_content.out_trade_no = _orderModel.orderId; //订单ID（由商家自行制定）
+	order.biz_content.timeout_express = @"30m"; //超时时间设置
+	order.biz_content.total_amount = [NSString stringWithFormat:@"%.2f",[orderModel.order_sumPrice floatValue]]; //商品价格[NSString stringWithFormat:@"%.2f", 0.01]; //
+	
+	//将商品信息拼接成字符串
+	NSString *orderInfo = [order orderInfoEncoded:NO];
+	NSString *orderInfoEncoded = [order orderInfoEncoded:YES];
+	NSLog(@"orderSpec = %@",orderInfo);
+	
+	// NOTE: 获取私钥并将商户信息签名，外部商户的加签过程请务必放在服务端，防止公私钥数据泄露；
+	//       需要遵循RSA签名规范，并将签名字符串base64编码和UrlEncode
+	NSString *signedString = nil;
+	APRSASigner* signer = [[APRSASigner alloc] initWithPrivateKey:((rsa2PrivateKey.length > 1)?rsa2PrivateKey:rsaPrivateKey)];
+	if ((rsa2PrivateKey.length > 1)) {
+		signedString = [signer signString:orderInfo withRSA2:YES];
+	} else {
+		signedString = [signer signString:orderInfo withRSA2:NO];
+	}
+	
+	// NOTE: 如果加签成功，则继续执行支付
+	if (signedString != nil) {
+		//应用注册scheme,在AliSDKDemo-Info.plist定义URL types
+		NSString *appScheme = @"hsalisdkdemo";
+		
+		// NOTE: 将签名成功字符串格式化为订单字符串,请严格按照该格式
+		NSString *orderString = [NSString stringWithFormat:@"%@&sign=%@",
+								 orderInfoEncoded, signedString];
+		
+		// NOTE: 调用支付结果开始支付
+		[[AlipaySDK defaultService] payOrder:orderString fromScheme:appScheme callback:^(NSDictionary *resultDic) {
+			NSLog(@"reslut = %@",resultDic);
+			NSDictionary *memo = resultDic;
+			
+			if ([HSPublic aliPaySuccess:memo]) {
+				[[NSNotificationCenter defaultCenter] postNotificationName:kHSPaySuccess object:nil userInfo:nil];
+			}
+			else
+			{
+				[[NSNotificationCenter defaultCenter] postNotificationName:kHSPayFailed object:nil userInfo:@{kHSPayResultMsg:[HSPublic controlNullString:memo[kAliPayMemo]]}];
+			}
+		}];
+	}
+	return;
+	
+	
     /*
      *点击获取prodcut实例并初始化订单信息
      */
@@ -287,11 +405,13 @@ static const int kUpdateOrderMaxCount = 5;
         [alert show];
         return;
     }
-    
+	
+	
     /*
      *生成订单信息及签名
      */
     //将商品信息赋予AlixPayOrder的成员变量
+	/*
     Order *order = [[Order alloc] init];
     order.partner = partner;
     order.seller = seller;
@@ -339,6 +459,7 @@ static const int kUpdateOrderMaxCount = 5;
         }];
         
     }
+	 */
 
 }
 

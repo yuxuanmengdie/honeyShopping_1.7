@@ -16,13 +16,15 @@
 #import "UIView+HSLayout.h"
 #import "HSHomeCollectionViewCell.h"
 #import "MJRefresh.h"
+#import "HSHomeAdView.h"
 
 #import "HSCommodtyItemModel.h"
 #import "HSBannerModel.h"
 #import "HSAdItemModel.h"
 #import "HSCouponModel.h"
 #import "HSUserInfoModel.h"
-
+#import "HSHomeAdModel.h"
+#import "HSHomeCateModel.h"
 
 @interface HSHomeViewController ()<CHTCollectionViewDelegateWaterfallLayout,
 UICollectionViewDataSource,
@@ -88,7 +90,8 @@ static const float kFFScrollViewHeight = 200;
          [wself getIndexItemRequest];
     }];
     [_homeCollectionView.header beginRefreshing];
-
+	
+	[self getADInfo];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -144,6 +147,52 @@ static const float kFFScrollViewHeight = 200;
     }];
 }
 
+#pragma mark -
+#pragma mark 获取广告信息展示
+- (void)getADInfo
+{
+	NSDictionary *parametersDic = @{kPostJsonKey:[HSPublic md5Str:[HSPublic getIPAddress:YES]]};
+	[self.httpRequestOperationManager POST:kGetHomePopupsURL parameters:[HSPublic apiPostParas:parametersDic] success:^(AFHTTPRequestOperation *operation, id responseObject) {
+		NSLog(@"JSON: %@", responseObject);
+	} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+		NSLog(@"dddddddd = response=%@",operation.responseString);
+		NSString *str = (NSString *)operation.responseString;
+		if (str.length <= 1) {
+			return ;
+		}
+		NSString *result = [str substringFromIndex:0];
+		
+		NSData *data =  [result dataUsingEncoding:NSUTF8StringEncoding];
+		if (data == nil) {
+			return ;
+		}
+		NSError *jsonError = nil;
+		id json = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&jsonError];
+		NSLog(@"!!!!%@",json);
+		if ([json isKindOfClass:[NSArray class]] && jsonError == nil) {
+			
+			NSArray *jsonArray = (NSArray *)json;
+			
+		
+			[jsonArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
+				
+				HSHomeAdModel *model = [[HSHomeAdModel alloc] initWithDictionary:obj error:nil];
+				NSString *fullURL = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,model.content];
+				NSDate *date = [NSDate date];
+				NSTimeInterval time = [date timeIntervalSince1970];
+				if (time > [model.start_time floatValue] && time < [model.end_time floatValue]){
+					HSHomeAdView *adView = [[HSHomeAdView alloc] initWithURL:fullURL];
+					[adView show];
+				}
+				*stop = true;
+				
+			}];
+			
+		}
+	}];
+}
+
+
 
 #pragma mark - 
 #pragma mark 获取首页商品
@@ -164,16 +213,15 @@ static const float kFFScrollViewHeight = 200;
         }
         NSError *jsonError = nil;
         id json = [NSJSONSerialization JSONObjectWithData:operation.responseData options:NSJSONReadingMutableContainers error:&jsonError];
-        if (jsonError == nil && [json isKindOfClass:[NSArray class]]) {
-            NSArray *jsonArr = (NSArray *)json;
-            NSMutableArray *tmpArr = [[NSMutableArray alloc] initWithCapacity:jsonArr.count];
-            [jsonArr enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-                @autoreleasepool {
-                    HSBannerModel *bannerModel = [[HSBannerModel alloc] initWithDictionary:obj error:nil];
-                    [tmpArr addObject:bannerModel];
-                }
-                
-            }];
+        if (jsonError == nil && [json isKindOfClass:[NSDictionary class]]) {
+            NSDictionary *jsonDic = (NSDictionary *)json;
+            NSMutableArray *tmpArr = [[NSMutableArray alloc] initWithCapacity:jsonDic.allKeys.count];
+			[jsonDic enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSDictionary *obj, BOOL * stop) {
+				@autoreleasepool {
+					HSHomeCateModel *model = [[HSHomeCateModel alloc] initWithDictionary:obj error:nil];
+					[tmpArr addObject:model];
+				}
+			}];
             
             _itemsDataArray = tmpArr;
             [_homeCollectionView reloadData];
@@ -331,17 +379,25 @@ static const float kFFScrollViewHeight = 200;
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
-    return _sectionImageArray.count + 1;
+    //return _sectionImageArray.count + 1;
+	return _itemsDataArray.count + 1;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
     NSInteger num = 4;
-    
+	
+	if (section == 0) {
+		num = _couponDataArray.count;
+	}else {
+		HSHomeCateModel *model = _itemsDataArray[section-1];
+		num = model.list.count;
+	};
+	return num;
+	
     if (section == 0) {
         num = _couponDataArray.count;
-    }
-    else if (section == 1 || section ==  3)
+    }else if (section == 1 || section ==  3)
     {
         num = 5;
     }
@@ -384,9 +440,14 @@ static const float kFFScrollViewHeight = 200;
     }
     else
     {
-        NSInteger sum = [self p_totalNumBeforeSection:indexPath.section];
-        HSBannerModel *bannerModel = _itemsDataArray[sum+indexPath.row];
-        imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,bannerModel.content];
+//        NSInteger sum = [self p_totalNumBeforeSection:indexPath.section];
+//        HSBannerModel *bannerModel = _itemsDataArray[sum+indexPath.row];
+//        imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,bannerModel.content];
+//
+	
+		HSHomeCateModel *bannerModel = _itemsDataArray[indexPath.section-1];
+		HSHomeAdModel *model = bannerModel.list[indexPath.row];
+		imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,model.content];
     }
     
     
@@ -461,6 +522,7 @@ static const float kFFScrollViewHeight = 200;
     }
     else if ([kind isEqualToString: CHTCollectionElementKindSectionHeader] && indexPath.section > 0)
     {
+		
         HSBannerHeaderCollectionReusableView *view =  [collectionView dequeueReusableSupplementaryViewOfKind :kind   withReuseIdentifier:reuseIdentifier   forIndexPath:indexPath];
         
         UIImageView *sectionImgView = (UIImageView *)[view viewWithTag:604];
@@ -471,9 +533,38 @@ static const float kFFScrollViewHeight = 200;
             sectionImgView.tag = 604;
             [view HS_edgeFillWithSubView:sectionImgView];
         }
-        NSString *imgName  = _sectionImageArray[indexPath.section-1];
-        UIImage *img = [UIImage imageNamed:imgName];
-        sectionImgView.image = img;
+		
+//        NSString *imgName  = _sectionImageArray[indexPath.section-1];
+//        UIImage *img = [UIImage imageNamed:imgName];
+//        sectionImgView.image = img;
+		
+		HSHomeCateModel *cateModel = _itemsDataArray[indexPath.section-1];
+		NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,cateModel.content];
+		//[sectionImgView sd_setImageWithURL:[NSURL URLWithString:imgUrl] placeholderImage:kPlaceholderImage];
+		[sectionImgView sd_setImageWithURL:[NSURL URLWithString:imgUrl] placeholderImage:kPlaceholderImage completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+			if (image) {
+				// do something with image
+				
+				NSValue *imgSize =  [NSValue valueWithCGSize:image.size];
+				NSDictionary *dic = [self.imageSizeDic objectForKey:[self p_keyFromIndex:indexPath]];
+				if (dic != nil ) {
+					NSURL *imgURL = dic[kImageURLKey];
+					NSValue *sizeValue = dic[kImageSizeKey];
+					if ([imgURL isEqual:imageURL] && [sizeValue isEqual:imgSize]) {
+						return ;
+					}
+				}
+				
+				NSDictionary *tmpDic = @{kImageSizeKey:imgSize,
+										 kImageURLKey:imageURL};
+				
+				[self.imageSizeDic setObject:tmpDic forKey:imgUrl];
+				if (collectionView.dataSource != nil) {
+					[collectionView reloadItemsAtIndexPaths:@[indexPath]];
+				}
+				
+			}
+		}];
 
         return view;
     }
@@ -492,9 +583,17 @@ static const float kFFScrollViewHeight = 200;
     }
     else
     {
-        NSString *imgName  = _sectionImageArray[section-1];
-        UIImage *img = [UIImage imageNamed:imgName];
-        hei = (float)img.size.height / img.size.width * collectionView.frame.size.width;
+		hei = 40;
+		HSHomeCateModel *cateModel = _itemsDataArray[section-1];
+		NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,cateModel.content];
+		NSDictionary *dic = [self.imageSizeDic objectForKey:imgUrl];
+		if (dic != nil) {
+			NSValue *sizeValue = dic[kImageSizeKey];
+			CGSize size = [sizeValue CGSizeValue];
+			hei = (float)size.height / size.width * collectionView.frame.size.width;
+		}
+		
+	
     }
     return hei;
 }
@@ -516,15 +615,11 @@ static const float kFFScrollViewHeight = 200;
     }
    else
    {
-       int sum = 0;
-       for (int j=1; j<indexPath.section; j++) {
-           sum += [collectionView numberOfItemsInSection:j];
-       }
-
-       HSBannerModel *bannerModel = _itemsDataArray[sum+indexPath.row];
+       HSHomeCateModel *cateModel = _itemsDataArray[indexPath.section-1];
+	   HSHomeAdModel *model = cateModel.list[indexPath.row];
        /// 点击后委托父控制器push
        HSCommodtyItemModel *itemModel = [[HSCommodtyItemModel alloc] init];
-       itemModel.id = bannerModel.desc;
+       itemModel.id = model.desc;
        if (self.cellSelectedBlock) {
            self.cellSelectedBlock(itemModel);
        }

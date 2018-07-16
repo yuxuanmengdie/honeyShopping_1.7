@@ -9,6 +9,7 @@
 #import "HSShoppingCartViewController.h"
 #import "HSSubmitOrderViewController.h"
 #import "HSLoginInViewController.h"
+#import "HSMainViewController.h"
 
 #import "PKYStepper.h"
 #import "HSCatrTableViewCell.h"
@@ -16,6 +17,8 @@
 #import "UIImageView+WebCache.h"
 #import "HSCommodityItemDetailPicModel.h"
 #import "UIView+HSLayout.h"
+
+static const NSInteger kPlaceTag = 1001;
 
 @interface HSShoppingCartViewController ()<UITableViewDataSource,
 UITableViewDelegate>
@@ -72,10 +75,29 @@ UITableViewDelegate>
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-     _cartArray = [HSDBManager selectAllWithTableName:[HSDBManager tableNameWithUid]];
+	_cartArray = [self cartList];
     [self initSelectDic];
     [_cartTableView reloadData];
     
+}
+
+- (NSArray *)cartList {
+	
+	 NSArray *list = [HSDBManager selectAllWithTableName:[HSDBManager tableNameWithUid]];
+	
+	if (list && list.count > 0) {
+		NSMutableArray *tmp = [[NSMutableArray alloc] initWithCapacity:list.count];
+		[list enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
+			HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
+			[tmp addObject:model];
+			
+		}];
+		return tmp;
+		
+	}
+	
+	return @[];
+	
 }
 
 - (void)didReceiveMemoryWarning {
@@ -177,8 +199,9 @@ UITableViewDelegate>
         [senderBtn setTitle:@"全选" forState:UIControlStateNormal];
     }
     
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-        [_seletedDic setObject:[NSNumber numberWithBool:_isAllSelected] forKey:[self keyFromItemID:obj[kPostJsonid]]];
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *obj, NSUInteger idx, BOOL *stop) {
+		NSString *key = [self keyFromItemID:obj.id];
+        [_seletedDic setObject:[NSNumber numberWithBool:_isAllSelected] forKey:key];
     }];
     [_cartTableView reloadData];
 
@@ -223,8 +246,8 @@ UITableViewDelegate>
     if (_seletedDic.allKeys.count > 0) {
         return;
     }
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-        [_seletedDic setObject:[NSNumber numberWithBool:YES] forKey:[self keyFromItemID:obj[kPostJsonid]]];
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *model, NSUInteger idx, BOOL *stop) {
+        [_seletedDic setObject:[NSNumber numberWithBool:YES] forKey:[self keyFromItemID:model.id]];
     }];
    
     
@@ -296,13 +319,13 @@ UITableViewDelegate>
 - (void)deleteSelectedItem
 {
     NSMutableArray *tmp = [[NSMutableArray alloc] initWithArray:_cartArray];
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *picModel, NSUInteger idx, BOOL *stop) {
         
-        NSNumber *isSelect = [_seletedDic objectForKey:[self keyFromItemID:obj[kPostJsonid]]];
+        NSNumber *isSelect = [_seletedDic objectForKey:[self keyFromItemID:picModel.id]];
         if ([isSelect boolValue]) { /// 选中状态的删除
-            [tmp removeObject:obj];
+            [tmp removeObject:picModel];
             
-            HSCommodityItemDetailPicModel *picModel = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
+//            HSCommodityItemDetailPicModel *picModel = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
             [HSDBManager deleteItemWithTableName:[HSDBManager tableNameWithUid] keyID:picModel.id];
         }
     }];
@@ -316,12 +339,13 @@ UITableViewDelegate>
 - (void)totalPrice
 {
     __block float totle = 0.0;
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-        HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
-        NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:model.id]];
-        int count = num == nil ? 1 : [num intValue];
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *model, NSUInteger idx, BOOL *stop) {
+        //HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
+//        NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:model.id]];
+//        int count = num == nil ? 1 : [num intValue];
+		int count = model.collectNum > 1 ? model.collectNum : 1;
         float price = [model.price floatValue];
-        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:obj[kPostJsonid]]];
+        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:model.id]];
         BOOL isSuc = suc == nil ? NO :[suc boolValue];
         if (isSuc) {
              totle += (float)price * count;
@@ -340,9 +364,9 @@ UITableViewDelegate>
 {
     NSMutableArray *tmp = [[NSMutableArray alloc] init];
     
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-        HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
-        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:obj[kPostJsonid]]];
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *model, NSUInteger idx, BOOL *stop) {
+//        HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
+        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:model.id]];
         BOOL isSuc = suc == nil ? NO :[suc boolValue];
         if (isSuc) {
             [tmp addObject:model];
@@ -356,11 +380,12 @@ UITableViewDelegate>
 - (NSDictionary *)selectedItemNum
 {
     NSMutableDictionary *tmp = [[NSMutableDictionary alloc] init];
-    [_cartArray enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL *stop) {
-        HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
-        NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:model.id]];
-        int count = num == nil ? 1 : [num intValue];
-        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:obj[kPostJsonid]]];
+    [_cartArray enumerateObjectsUsingBlock:^(HSCommodityItemDetailPicModel *model, NSUInteger idx, BOOL *stop) {
+        //HSCommodityItemDetailPicModel *model = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:obj error:nil];
+		int count =  model.collectNum > 1 ? model.collectNum : 1;
+        //NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:model.id]];
+        //int count = num == nil ? 1 : [num intValue];
+        NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:model.id]];
         BOOL isSuc = suc == nil ? NO :[suc boolValue];
         if (isSuc) {
             [tmp setObject:[NSNumber numberWithInt:count] forKey:[HSPublic controlNullString:model.id]];
@@ -372,6 +397,87 @@ UITableViewDelegate>
     return tmp;
 
 }
+- (void)goSee{
+	HSMainViewController *vc =  (HSMainViewController *)self.parentViewController.tabBarController;
+	[vc tabbarSelectIndex:0];
+}
+
+- (void)removePlace{
+	UIView *placeView = [self.view viewWithTag:kPlaceTag];
+	[placeView removeFromSuperview];
+	placeView = nil;
+}
+
+#pragma mark -
+#pragma mark 占位view
+- (void)placeView:(NSString *)imgName text:(NSString *)text btnText:(NSString *)btnText
+{
+	[self removePlace];
+	
+	UIView *bcView = [[UIView alloc] init];
+	bcView.backgroundColor = [UIColor whiteColor];
+	bcView.translatesAutoresizingMaskIntoConstraints = NO;
+	bcView.tag = kPlaceTag;
+	[self.view addSubview:bcView];
+	
+	UIView *placeView = [[UIView alloc] init];
+	placeView.backgroundColor = [UIColor whiteColor];
+	placeView.translatesAutoresizingMaskIntoConstraints = NO;
+	//placeView.tag = kPlaceViewTag;
+	[bcView addSubview:placeView];
+	
+	UIImageView *imgView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:imgName]];
+	imgView.contentMode = UIViewContentModeScaleAspectFit;
+	imgView.translatesAutoresizingMaskIntoConstraints = NO;
+	[placeView addSubview:imgView];
+	
+	UILabel *lbl = [[UILabel alloc] init];
+	lbl.textColor = [UIColor grayColor];
+	lbl.backgroundColor = [UIColor whiteColor];
+	lbl.textAlignment = NSTextAlignmentCenter;
+	lbl.font = [UIFont systemFontOfSize:14];
+	lbl.text = text;
+	[placeView addSubview:lbl];
+	lbl.translatesAutoresizingMaskIntoConstraints = NO;
+	
+	UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+	[btn setTitle:btnText forState:UIControlStateNormal];
+	[btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+	[btn setBackgroundColor:kAPPTintColor];
+	btn.titleLabel.font = [UIFont systemFontOfSize: 14.0];
+	btn.layer.cornerRadius = 5;
+	//btn.titleEdgeInsets = UIEdgeInsetsMake(0, 0, -10, 10);
+	[btn addTarget:self action:@selector(goSee) forControlEvents:UIControlEventTouchUpInside];
+	
+	[placeView addSubview:btn];
+	btn.translatesAutoresizingMaskIntoConstraints = NO;
+	
+	
+	NSString *vfl1 = @"V:|[imgView]-20-[lbl]-20-[btn]|";
+	//NSString *vfl2 = @"H:|-(>=0)-[imgView]";
+	//NSString *vfl3 = @"H:|-(>=0)-[lbl]|";
+	NSString *vfl4 = @"H:|-[imgView]-|";
+	NSString *vfl5 = @"H:|-[lbl]-|";
+	NSDictionary *dic = NSDictionaryOfVariableBindings(imgView,lbl,btn);
+	NSArray *arr1 = [NSLayoutConstraint constraintsWithVisualFormat:vfl1 options:0 metrics:nil views:dic];
+	//NSArray *arr2 = [NSLayoutConstraint constraintsWithVisualFormat:vfl2 options:0 metrics:nil views:dic];
+	//NSArray *arr3 = [NSLayoutConstraint constraintsWithVisualFormat:vfl3 options:0 metrics:nil views:dic];
+	NSArray *arr4 = [NSLayoutConstraint constraintsWithVisualFormat:vfl4 options:0 metrics:nil views:dic];
+	NSArray *arr5 = [NSLayoutConstraint constraintsWithVisualFormat:vfl5 options:0 metrics:nil views:dic];
+	[placeView addConstraints:arr1];
+	//[placeView addConstraints:arr2];
+	//[placeView addConstraints:arr3];
+	[placeView addConstraints:arr4];
+	[placeView addConstraints:arr5];
+	[placeView HS_centerXWithSubView:btn];
+	[btn HS_widthWithConstant:100];
+	//[placeView HS_centerXWithSubView:imgView];
+	//[placeView HS_centerXWithSubView:lbl];
+	//[placeView HS_centerXWithSubView:lbl];
+	[bcView HS_centerXYWithSubView:placeView];
+	[self.view HS_edgeFillWithSubView:bcView];
+	[self.view bringSubviewToFront:placeView];
+}
 
 
 #pragma mark -
@@ -379,12 +485,12 @@ UITableViewDelegate>
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (_cartArray.count == 0) {
-       [self placeViewWithImgName:@"search_no_content" text:@"购物车空空如也"];
+		[self placeView:@"icon_app_60" text:@"这里还没有好吃的哦" btnText:@"去逛逛"];
        
     }
     else
     {
-        [self removePlaceView];
+        [self removePlace];
     }
     if (!_isEditing) {
         _bottomView.hidden = _cartArray.count == 0 ? YES : NO;
@@ -400,29 +506,35 @@ UITableViewDelegate>
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     HSCatrTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HSCatrTableViewCell class]) forIndexPath:indexPath];
-    NSDictionary *dic = _cartArray[indexPath.row];
-    HSCommodityItemDetailPicModel *itemModel = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:dic error:nil];
+    HSCommodityItemDetailPicModel *itemModel = _cartArray[indexPath.row];
+
     cell.titlelabel.text = itemModel.title;
     cell.priceLabel.text = itemModel.price;
     cell.stepper.maximum = [itemModel.maxbuy floatValue];
     [cell.itemImageView sd_setImageWithURL:[NSURL URLWithString:[self commodityIntroImgFullUrl:itemModel.img]] placeholderImage:kPlaceholderImage];
     
-    NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:dic[kPostJsonid]]];
-    int buyCount = 0;
-    if (num == nil) {
-        [_itemNumDic setObject:@1 forKey:[self keyFromItemID:dic[kPostJsonid]]];
-        buyCount = 1;
-    }
-    else
-    {
-        buyCount = [num intValue];
-    }
+//    NSNumber *num = [_itemNumDic objectForKey:[self keyFromItemID:dic[kPostJsonid]]];
+//    int buyCount = 0;
+//    if (num == nil) {
+//        [_itemNumDic setObject:@1 forKey:[self keyFromItemID:dic[kPostJsonid]]];
+//        buyCount = 1;
+//    }
+//    else
+//    {
+//        buyCount = [num intValue];
+//    }
+	
+	int buyCount = itemModel.collectNum > 1 ? itemModel.collectNum : 1;
     __weak typeof(self) wself = self;
     [cell.stepper setValueChangedCallback:^(PKYStepper *stepper, float newValue){
         __strong typeof(wself) swself = wself;
          stepper.countLabel.text = [NSString stringWithFormat:@"%d",(int)newValue];
-        [swself->_itemNumDic setObject:[NSNumber numberWithInt:(int)newValue] forKey:[swself keyFromItemID:dic[kPostJsonid]]];
+        //[swself->_itemNumDic setObject:[NSNumber numberWithInt:(int)newValue] forKey:[swself keyFromItemID:dic[kPostJsonid]]];
+		itemModel.collectNum = (int)newValue;
         [swself totalPrice];
+		
+		[HSDBManager updateCartListWithTableName:[HSDBManager tableNameWithUid] keyID:itemModel.id data:[itemModel toDictionary]];
+		
         
     }];
     cell.stepper.value = buyCount;
@@ -430,18 +542,18 @@ UITableViewDelegate>
     __weak typeof(cell) wcell = cell;
     cell.selectBlock = ^{
         __strong typeof(wself) swself = wself;
-        NSDictionary *obj = swself->_cartArray[indexPath.row];
-        NSNumber *suc = [swself->_seletedDic objectForKey:[swself keyFromItemID:obj[kPostJsonid]]];
+        //NSDictionary *obj = swself->_cartArray[indexPath.row];
+        NSNumber *suc = [swself->_seletedDic objectForKey:[swself keyFromItemID:itemModel.id]];
         BOOL isSuc = suc == nil ? NO :[suc boolValue];
         
-        [swself->_seletedDic setObject:[NSNumber numberWithBool:!isSuc] forKey:[swself keyFromItemID:obj[kPostJsonid]]];
+        [swself->_seletedDic setObject:[NSNumber numberWithBool:!isSuc] forKey:[swself keyFromItemID:itemModel.id]];
         
         wcell.selectButton.selected = !isSuc;
         [swself totalPrice];
     };
     
-    NSDictionary *obj = _cartArray[indexPath.row];
-    NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:obj[kPostJsonid]]];
+    //NSDictionary *obj = _cartArray[indexPath.row];
+    NSNumber *suc = [_seletedDic objectForKey:[self keyFromItemID:itemModel.id]];
     BOOL isSuc = suc == nil ? NO :[suc boolValue];
     cell.selectButton.selected = isSuc;
 
@@ -481,7 +593,7 @@ UITableViewDelegate>
     // 删除的操作
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         
-        NSDictionary *dic = _cartArray[indexPath.row];
+        //NSDictionary *dic = _cartArray[indexPath.row];
         NSArray *indexPaths = @[indexPath]; // 构建 索引处的行数 的数组
         // 删除 索引的方法 后面是动画样式
         NSMutableArray *tmp = [[NSMutableArray alloc] initWithArray:_cartArray];
@@ -489,7 +601,8 @@ UITableViewDelegate>
         _cartArray = tmp;
         [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:(UITableViewRowAnimationLeft)];
         
-        HSCommodityItemDetailPicModel *picModel = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:dic error:nil];
+        //HSCommodityItemDetailPicModel *picModel = [[HSCommodityItemDetailPicModel alloc] initWithDictionary:dic error:nil];
+		HSCommodityItemDetailPicModel *picModel = _cartArray[indexPath.row];
         [HSDBManager deleteItemWithTableName:[HSDBManager tableNameWithUid] keyID:picModel.id];
         
     }

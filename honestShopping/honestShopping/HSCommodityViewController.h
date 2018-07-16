@@ -10,6 +10,7 @@
 #import "HSCommodtyItemModel.h"
 
 typedef void(^HSCommodityCollectionCellSelectedBlock)(HSCommodtyItemModel *itemModel);
+typedef void(^HSCommoditySuyuanDetailBlock)(HSCommodtyItemModel *itemModel);
 
 @interface HSCommodityViewController : HSBaseViewController
 
@@ -18,6 +19,9 @@ typedef void(^HSCommodityCollectionCellSelectedBlock)(HSCommodtyItemModel *itemM
 
 /// 类别的id
 @property (assign, nonatomic) NSString *cateID;
+
+/// 地方馆的id
+@property (assign, nonatomic) NSString *aid;
 
 
 /// 设置数据源
@@ -29,5 +33,7 @@ typedef void(^HSCommodityCollectionCellSelectedBlock)(HSCommodtyItemModel *itemM
 
 /// 点击单个cell的block
 @property (nonatomic, copy) HSCommodityCollectionCellSelectedBlock cellSelectedBlock;
+@property (nonatomic, copy) HSCommoditySuyuanDetailBlock suyuanDetailBlock;
+
 
 @end

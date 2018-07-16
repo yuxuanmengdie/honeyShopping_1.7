@@ -41,12 +41,25 @@
 // 账号帐户资料
 //更改商户把相关参数后可测试
 
+/*
 #define APP_ID          @"wxf674afd7fa6b3db1"               //APPID
 #define APP_SECRET      @"768ef498760a90567afeac93211abfa9" //appsecret
 //商户号，填写商户对应参数
 #define MCH_ID          @"1239187002"
 //商户API密钥，填写相应参数
 #define PARTNER_ID      @"11992211992211992211992211992211"
+//支付结果回调页面
+#define NOTIFY_URL      @"http://wxpay.weixin.qq.com/pub_v2/pay/notify.v2.php"
+//获取服务器端支付数据地址（商户自定义）
+#define SP_URL          @"http://wxpay.weixin.qq.com/pub_v2/app/app_pay.php"
+ */
+
+#define APP_ID          @"wx1d9b98cfadf6685f"               //APPID
+#define APP_SECRET      @"a0d371e5747398debed8aecc9783e3f1" //appsecret
+//商户号，填写商户对应参数
+#define MCH_ID          @"1504840701"
+//商户API密钥，填写相应参数
+#define PARTNER_ID      @"glfd2018glfd2018glfd2018glfd2018" //glfd2018glfd2018glfd2018glfd2018
 //支付结果回调页面
 #define NOTIFY_URL      @"http://wxpay.weixin.qq.com/pub_v2/pay/notify.v2.php"
 //获取服务器端支付数据地址（商户自定义）

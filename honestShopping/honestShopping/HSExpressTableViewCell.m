@@ -13,6 +13,10 @@
 
 - (void)awakeFromNib {
     // Initialization code
+	[super awakeFromNib];
+//	_progressView.lineColor = [UIColor lightGrayColor];
+//	_progressView.outsideColor = [UIColor redColor];
+//	_progressView.circleColor = [UIColor yellowColor];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -26,8 +30,8 @@
     if (isLasted) {
         _leadingConstraint.constant = 0;
         _trailingConstraint.constant = 0;
-        _expressTitle.textColor = kAPPLightGreenColor;
-        _timeLabel.textColor = kAPPLightGreenColor;
+        _expressTitle.textColor = kAPPTintColor;
+        _timeLabel.textColor = kAPPTintColor;
         
     } else {
         _leadingConstraint.constant = 16 + 20 + 8;

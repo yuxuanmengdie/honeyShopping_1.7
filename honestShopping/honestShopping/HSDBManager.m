@@ -145,6 +145,23 @@ static NSString *const kColumnDataDicKey = @"dataDic";
 
 }
 
+/// 更新单个记录
++ (BOOL)updateCartListWithTableName:(NSString *)tableName keyID:(NSString *)keyID data:(NSDictionary *)dataDic
+{
+	
+	BOOL isOk = NO;
+	[HSDBManager createTableWithTableName:tableName];
+	if ([[self shareDataBase] open]) {
+		NSString *sql = [NSString stringWithFormat:@"UPDATE %@ SET %@ = ? WHERE %@ = '%@' ",tableName,kColumnDataDicKey,kColumnIDKey,keyID];
+		
+		isOk = [[self shareDataBase] executeUpdate:
+				sql,[NSKeyedArchiver archivedDataWithRootObject:dataDic]];
+		[[self shareDataBase] close];
+	}
+	return isOk;
+	
+}
+
 + (NSDictionary *)selectedItemWithTableName:(NSString *)tableName keyID:(NSString *)keyID
 {
     NSDictionary *resultDic = nil;
@@ -157,6 +174,8 @@ static NSString *const kColumnDataDicKey = @"dataDic";
     }
     return resultDic;
 }
+
+
 
 + (BOOL)deleteItemWithTableName:(NSString *)tableName keyID:(NSString *)keyID
 {

@@ -109,6 +109,8 @@ static NSString *const kPostJsonComment = @"comment";
 
 static NSString *const kPostJsonPrice = @"price";
 
+static NSString *const kPostJsonAid = @"aid";
+
 #pragma mark -
 #pragma mark 请求url
 /// 注册
@@ -150,10 +152,17 @@ static NSString *const kPostJsonPrice = @"price";
 /// 删除收货地址
 #define kDelAddressURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php?g=api_test&m=User&a=delAddress"]
 
+
+///首页广告信息
+#define kGetHomePopupsURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php?g=api_test&m=Item&a=getHomePopups"]
 /// 分类列表
 #define kGetCateURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php?g=api_test&m=Item&a=getCate"]
 /// 三品一标下面分类 获取三品一标(1.有机产品2.绿色产品3.无公害产品4.地理标志)
 #define kGetSpybByTypeURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php?g=api_test&m=Item&a=getSpybByType"]
+/// 地方馆列表
+#define kGetItemAddrURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php/?g=api_test&m=Item&a=getItemAddr"]
+/// 搜索地域信息列表(搜索栏目条件
+#define kGetSearchListAddrURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php/?g=api_test&m=Item&a=getSearchListAddr"]
 /// 搜索列表
 #define kGetSearchListURL  [NSString stringWithFormat:@"%@%@",kURLHeader,@"/index.php?g=api_test&m=Item&a=getSearchList"]
 /// 商品信息
@@ -307,6 +316,10 @@ static NSString *const kLoginSuccessNotiKey = @"loginSuccessNotiKey";
 
 #pragma mark -是否开启AES加密
 static BOOL const kAPIAesEncryptFlag = YES;
+
+#pragma mark - 物流查询
+static NSString *const kExpressURL = @"https://wuliu.market.alicloudapi.com/kdi";
+static NSString *const kExpressAppCode = @"cd08b3809b7a44239bdb5b6cd26e9058";
 
 #endif
 

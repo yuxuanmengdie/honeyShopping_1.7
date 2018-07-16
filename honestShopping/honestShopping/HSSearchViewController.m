@@ -14,11 +14,20 @@
 #import "UIImageView+WebCache.h"
 #import "MJRefresh.h"
 #import "HSCommodityDetailViewController.h"
+#import "HSCommodityTableViewCell.h"
+#import "UIView+HSLayout.h"
+#import "HSSearchListItemModel.h"
+#import "HSSuyuanDetailViewController.h"
+
 
 @interface HSSearchViewController ()<UISearchBarDelegate,
 UICollectionViewDataSource,
 UICollectionViewDelegate,
-CHTCollectionViewDelegateWaterfallLayout>
+CHTCollectionViewDelegateWaterfallLayout,
+UITableViewDelegate,
+UITableViewDataSource,
+UIPickerViewDelegate,
+UIPickerViewDataSource>
 {
     UISearchBar *_searchBar;
     
@@ -29,10 +38,20 @@ CHTCollectionViewDelegateWaterfallLayout>
     NSArray *_searchArray;
     
     HSCommodityCollectionViewCell *_sizeCell;
-    
+	
+	UIButton *_aidBtn;
+	
+	NSString *_aid;
+	
+	UIPickerView *_pickView;
+	
+	UIView *_bcView;
 }
 
 @property (weak, nonatomic) IBOutlet UICollectionView *searchCollectionView;
+
+@property (strong, nonatomic) UITableView *searchTableView;
+
 
 //@property (weak, nonatomic) IBOutlet UITableView *searchTableView;
 //
@@ -50,11 +69,68 @@ static const int kSizeNum = 10;
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     [self searchBarSetUp];
-    [self searchCollectViewLayout];
+	
+    //[self searchCollectViewLayout];
     [self setNavBarRightBarWithTitle:@"    " action:nil];
-    
+	
+	_searchTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
+	[self.view addSubview:_searchTableView];
+	[_searchTableView registerNib:[UINib nibWithNibName:NSStringFromClass([HSCommodityTableViewCell class]) bundle:nil] forCellReuseIdentifier:NSStringFromClass([HSCommodityTableViewCell class])];
+	[_searchTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+	
+	_searchTableView.translatesAutoresizingMaskIntoConstraints = NO;
+	NSDictionary *views = NSDictionaryOfVariableBindings(_searchTableView);
+	NSString *heightVfl = @"V:|-0-[_searchTableView]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:heightVfl options:0 metrics:nil views:views]];
+	NSString *widthVfl = @"H:|-0-[_searchTableView]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:widthVfl options:0 metrics:nil views:views]];
+	_searchTableView.delegate = self;
+	_searchTableView.dataSource = self;
+	_searchTableView.tableFooterView = [[UIView alloc] init];
+	
+	HSSearchListItemModel *model = [[HSSearchListItemModel alloc] init];
+	model.id = @"";
+	model.name = @"全部";
+	
+	if (!_searchList) {
+		NSArray *tmp = @[model];
+		_searchList = tmp;
+	}else{
+		NSMutableArray *tmp = [[NSMutableArray alloc] initWithArray:_searchList];
+		[tmp insertObject:model atIndex:0];
+		_searchList = tmp;
+	};
+	
+	[self pickViewInit];
 }
 
+
+- (void)pickViewInit{
+	UIView *bcView = [[UIView alloc] initWithFrame:CGRectZero];
+	bcView.backgroundColor = [UIColor blackColor];
+	bcView.alpha = 0.6;
+	[self.view addSubview:bcView];
+	[self.view HS_edgeFillWithSubView:bcView];
+	
+	
+	UIPickerView *pickView = [[UIPickerView alloc]initWithFrame:self.view.frame];
+	pickView.backgroundColor = [UIColor whiteColor];
+	//pickView.alpha = 0.9;
+	pickView.delegate = self;
+	pickView.dataSource = self;
+	[self.view addSubview:pickView];
+	pickView.translatesAutoresizingMaskIntoConstraints = NO;
+	NSDictionary *views = NSDictionaryOfVariableBindings(pickView);
+	NSString *heightVfl = @"V:[pickView(240)]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:heightVfl options:0 metrics:nil views:views]];
+	NSString *widthVfl = @"H:|-0-[pickView]-0-|";
+	[self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:widthVfl options:0 metrics:nil views:views]];
+	pickView.hidden = YES;
+	bcView.hidden = YES;
+	
+	_pickView = pickView;
+	_bcView = bcView;
+}
 
 - (void)viewDidAppear:(BOOL)animated
 {
@@ -101,14 +177,65 @@ static const int kSizeNum = 10;
 - (void)searchBarSetUp
 {
     UISearchBar *searchBar = [[UISearchBar alloc] init];
-    searchBar.tintColor = kAPPTintColor;
-    searchBar.frame = CGRectMake(0, 0,1000, 30);
+	//UITextField *searchBar = [[UITextField alloc] init];
+    //searchBar.tintColor = kAPPTintColor;
+    //searchBar.frame = CGRectMake(0, 0,1000, 24);
     searchBar.delegate = self;
-//    searchBar.returnKeyType = UIReturnKeySearch;
+    searchBar.returnKeyType = UIReturnKeySearch;
     searchBar.placeholder = @"输入关键字";
+	UITextField *searchField = [_searchBar valueForKey:@"_searchField"];
+	[searchField setValue:[UIFont systemFontOfSize:14]forKeyPath:@"_placeholderLabel.font"];
     _searchBar = searchBar;
-    self.navigationItem.titleView = searchBar;
+    //self.navigationItem.titleView = searchBar;
     //searchBar.text = [[NSUserDefaults standardUserDefaults] objectForKey:@"kdeviceToken"];
+	
+	UIView *main = [[UIView alloc] initWithFrame:CGRectZero];
+	main.backgroundColor = [UIColor whiteColor];
+	UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+	btn.contentEdgeInsets = UIEdgeInsetsMake(0, -5, 0, 0);
+	_aidBtn = btn;
+	[btn setTitleColor:kAPPTintColor forState:UIControlStateNormal];
+	[btn setImage:[UIImage imageNamed:@"select_down"] forState:UIControlStateNormal];
+	[btn addTarget:self action:@selector(aidSelect:) forControlEvents:UIControlEventTouchUpInside];
+	btn.titleLabel.font = [UIFont systemFontOfSize:14];
+	[btn setTitle:@"全部" forState:UIControlStateNormal];
+	
+	_pickView.hidden = true;
+	btn.tag = 901;
+	[main addSubview:btn];
+	[main addSubview:searchBar];
+	btn.translatesAutoresizingMaskIntoConstraints = NO;
+	searchBar.translatesAutoresizingMaskIntoConstraints = NO;
+	[main HS_centerYWithSubView:btn];
+	[main HS_centerYWithSubView:searchBar];
+	//[main HS_alignWithFirstView:btn secondView:main layoutAttribute:NSLayoutAttributeLeading constat:5];
+	//[main HS_alignWithFirstView:searchBar secondView:main layoutAttribute:NSLayoutAttributeTrailing constat:0];
+	//[main HS_dispacingWithFisrtView:btn fistatt:NSLayoutAttributeTrailing secondView:searchBar secondAtt:NSLayoutAttributeLeading constant:5];
+	[searchBar HS_widthWithConstant:200];
+	
+	NSDictionary *views = NSDictionaryOfVariableBindings(btn,searchBar);
+	NSString *widthVfl = @"H:|-8-[btn]-0-[searchBar]-8-|";
+	[main addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:widthVfl options:0 metrics:nil views:views]];
+	NSString *heightVfl = @"V:|-0-[searchBar]-0-|";
+	[main HS_HeightWithConstant:30];
+	[searchBar HS_HeightWithConstant:30];
+	//[main addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:heightVfl options:0 metrics:nil views:views]];
+	//self.navigationItem.titleView = main;
+	//[main HS_edgeFillWithSubView:btn];
+	main.layer.masksToBounds = YES;
+	main.layer.cornerRadius = 5;
+	self.navigationItem.titleView = main;
+	[btn layoutIfNeeded];
+	_aidBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 32, 0, -32);
+	_aidBtn.titleEdgeInsets = UIEdgeInsetsMake(0, -16, 0, 16);
+}
+
+-(void)aidSelect:(id)sender{
+	[_searchBar resignFirstResponder];
+	_pickView.hidden = NO;
+	_bcView.hidden = NO;
+	[self.view bringSubviewToFront:_bcView];
+	[self.view bringSubviewToFront:_pickView];
 }
 
 #pragma mark -
@@ -135,8 +262,17 @@ static const int kSizeNum = 10;
     NSDictionary *parametersDic = @{kPostJsonKey:[HSPublic md5Str:[HSPublic getIPAddress:YES]],
                                     kPostJsonPage:[NSNumber numberWithInt:page],
                                     kPostJsonSize:[NSNumber numberWithInt:size],
-                                    kPostJsonKeyWord:keyWord
+                                    kPostJsonKeyWord:keyWord,
+									kPostJsonAid:[HSPublic controlNullString:_aid]
                                     };
+	
+	if (!_aid) {
+		parametersDic = @{kPostJsonKey:[HSPublic md5Str:[HSPublic getIPAddress:YES]],
+						  kPostJsonPage:[NSNumber numberWithInt:page],
+						  kPostJsonSize:[NSNumber numberWithInt:size],
+						  kPostJsonKeyWord:keyWord,
+						  };
+	}
     // 142346261  123456
     
     [self.httpRequestOperationManager POST:kGetSearchListURL parameters:[HSPublic apiPostParas:parametersDic] success:^(AFHTTPRequestOperation *operation, id responseObject) { /// 失败
@@ -159,14 +295,14 @@ static const int kSizeNum = 10;
             _resultModel = [[HSSearchResultModel alloc] initWithDictionary:tmpDic error:nil];
             if (page < _resultModel.totalPage.intValue) { /// 还可以上拉更多
                 __weak typeof(self) wself = self;
-                [_searchCollectionView addLegendFooterWithRefreshingBlock:^{
+                [_searchTableView addLegendFooterWithRefreshingBlock:^{
                     __strong typeof(wself) swself = wself;
                     [swself searchRequest:swself->_lastSearchText page:(int)(swself->_searchArray.count/kSizeNum) + 1 size:kSizeNum isMore:YES];
                 }];
             }
             else
             {
-                [_searchCollectionView.footer noticeNoMoreData];
+                [_searchTableView.footer noticeNoMoreData];
             }
             
             if (!isMore) { /// 不是加载更多
@@ -179,13 +315,97 @@ static const int kSizeNum = 10;
                 _searchArray = tmp;
             }
             
-            [_searchCollectionView reloadData];
+            [_searchTableView reloadData];
             
         
         }
     }];
 
 }
+
+#pragma mark-
+#pragma mark tableView DataSource
+- (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+	if (_searchArray.count == 0) {
+		[self placeViewWithImgName:@"search_no_content" text:@"没有搜索内容"];
+	}
+	else
+	{
+		[self removePlaceView];
+	}
+	
+	return _searchArray.count;
+}
+
+- (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+	
+	HSCommodityTableViewCell *cell = (HSCommodityTableViewCell *)[tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HSCommodityTableViewCell class])];
+	
+	if (cell == nil){
+		cell = [[HSCommodityTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"HSCommodityTableViewCell"];
+	}
+	HSCommodtyItemModel *model = [_searchArray objectAtIndex:indexPath.row];
+	[cell setData:model];
+	typeof(self) wself = self;
+	cell.suyuanDetailBlock = ^(HSCommodtyItemModel *itemModel){
+		UIStoryboard *storyBorad = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+		HSSuyuanDetailViewController *detailVC = [storyBorad instantiateViewControllerWithIdentifier:NSStringFromClass([HSSuyuanDetailViewController class])];
+		detailVC.itemModel = itemModel;
+		detailVC.hidesBottomBarWhenPushed = true;
+		[wself.navigationController pushViewController:detailVC animated:YES];
+	};
+	return cell;
+	
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+	return 140;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	
+	HSCommodtyItemModel *itemModel = _searchArray[indexPath.row];
+	
+	UIStoryboard *board = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+	HSCommodityDetailViewController *detailVC = [board instantiateViewControllerWithIdentifier:NSStringFromClass([HSCommodityDetailViewController class])];
+	detailVC.itemModel = itemModel;
+	[self.navigationController pushViewController:detailVC animated:YES];
+	
+}
+
+#pragma mark -
+#pragma  mark pickerView dataSource and delegate
+// 返回多少列
+- (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView{
+	return 1;
+}
+
+// 返回每列的行数
+- (NSInteger)pickerView:(UIPickerView *)pickerView numberOfRowsInComponent:(NSInteger)component{
+	return _searchList.count;
+};
+
+// 返回每行的标题
+-(NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
+{
+	HSSearchListItemModel *model = _searchList[row];
+	return model.name;
+}
+
+// 选中行显示在label上
+-(void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
+{
+	HSSearchListItemModel *model = _searchList[row];
+	_aid = model.id;
+	[_aidBtn setTitle:model.name forState:UIControlStateNormal];
+	[_aidBtn layoutIfNeeded];
+	_aidBtn.imageEdgeInsets = UIEdgeInsetsMake(0, _aidBtn.titleLabel.frame.size.width + 2.5, 0, -_aidBtn.titleLabel.frame.size.width - 2.5);
+	_aidBtn.titleEdgeInsets = UIEdgeInsetsMake(0, -_aidBtn.currentImage.size.width, 0, _aidBtn.currentImage.size.width);
+	_pickView.hidden = true;
+	_bcView.hidden = true;
+}
+
 
 #pragma mark -
 #pragma  mark collectionView dataSource and delegate

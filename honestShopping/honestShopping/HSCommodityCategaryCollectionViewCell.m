@@ -12,25 +12,30 @@
 
 - (void)awakeFromNib {
     // Initialization code
+	[super awakeFromNib];
+	_cateImgView.layer.cornerRadius = 25;
+	_cateImgView.layer.masksToBounds = YES;
 }
 
 
 - (void)changeTitleColorAndFont:(BOOL)isSelected
 {
- //   [UIView animateWithDuration:1.0 animations:^{
+    [UIView animateWithDuration:0.3 animations:^{
     
         
         if (isSelected) {//选中状态
-            _categaryTitleLabel.font = [UIFont systemFontOfSize:16];
+            _categaryTitleLabel.font = [UIFont systemFontOfSize:14];
             _categaryTitleLabel.textColor = kAPPTintColor;
+			_sepView.backgroundColor = kAPPTintColor;
         }
         else // 没选择
         {
             _categaryTitleLabel.font = [UIFont systemFontOfSize:14];
             _categaryTitleLabel.textColor = kAppYellowColor;
+			_sepView.backgroundColor = [UIColor clearColor];
         }
 
-//    }];
+    }];
 }
 
 @end

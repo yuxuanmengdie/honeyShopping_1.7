@@ -10,4 +10,7 @@
 
 @interface HSMainViewController : UITabBarController
 
+//设置tabbar选中
+- (void)tabbarSelectIndex:(int)idx;
+
 @end

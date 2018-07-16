@@ -106,7 +106,7 @@
 - (IBAction)collectBtnAction:(id)sender {
     
     if (self.collectBlock) {
-        self.collectBlock(sender);
+        self.collectBlock(sender,[_stepper.countLabel.text intValue]);
     }
 }
 

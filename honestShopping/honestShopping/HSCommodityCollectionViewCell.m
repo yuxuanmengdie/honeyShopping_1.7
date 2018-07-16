@@ -12,6 +12,7 @@
 
 - (void)awakeFromNib {
     // Initialization code
+	[super awakeFromNib];
 }
 
 - (void)layoutSubviews
@@ -31,7 +32,7 @@
     
     _priceLabel.text = [NSString stringWithFormat:@"%@元",[HSPublic controlNullString:itemModel.price]];
     _priceLabel.textColor = [UIColor redColor];
-    _oldPricelabel.text = [HSPublic controlNullString:nil];
+	_oldPricelabel.text = [HSPublic controlNullString:nil];
     _oldPricelabel.textColor = [UIColor grayColor];
     _oldPricelabel.strikeThroughEnabled = YES;
     _oldPricelabel.strikeThroughColor = _oldPricelabel.textColor;

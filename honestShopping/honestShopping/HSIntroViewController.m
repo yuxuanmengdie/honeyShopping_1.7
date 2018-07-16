@@ -30,6 +30,8 @@ EAIntroDelegate>
     NSTimer *_timer;
     /// 单个图片最大尝试次数的数组
     NSMutableDictionary *_urlTryDic;
+	
+	HSMainViewController *_mainVC;
 }
 
 
@@ -42,7 +44,7 @@ EAIntroDelegate>
 static NSString *const kIntroViewToMainBar = @"IntroViewToMainTabBar";
 
 /// 启动图片最大持续时间 如果时间到 且 图片没有下载完成，则直接跳过引导图和欢迎图。
-static const float kMaxLoadingTime = 5.0;
+static const float kMaxLoadingTime = 3.0;
 
 /// 单个最大下载尝试次数
 static const int kMaxDownTryNum = 20;
@@ -73,6 +75,9 @@ static const int kMaxDownTryNum = 20;
     }
     
     _timer = [NSTimer scheduledTimerWithTimeInterval:kMaxLoadingTime target:self selector:@selector(timerAction) userInfo:nil repeats:NO];
+	
+	UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+	_mainVC = [storyboard instantiateViewControllerWithIdentifier:NSStringFromClass([HSMainViewController class])];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -385,8 +390,8 @@ static const int kMaxDownTryNum = 20;
         return;
     }
     
-    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    UIViewController *vc = [storyboard instantiateViewControllerWithIdentifier:NSStringFromClass([HSMainViewController class])];
+    //UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+	UIViewController *vc = _mainVC;//[storyboard instantiateViewControllerWithIdentifier:NSStringFromClass([HSMainViewController class])];
 //    vc.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
     __weak typeof(self) wself = self;
     [self presentViewController:vc animated:YES completion:^{

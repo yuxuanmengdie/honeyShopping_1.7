@@ -12,7 +12,9 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *categaryTitleLabel;
 
+@property (weak, nonatomic) IBOutlet UIImageView *cateImgView;
 
+@property (weak, nonatomic) IBOutlet UIView *sepView;
 
 /// 是否选择 修改字体颜色和大小
 - (void)changeTitleColorAndFont:(BOOL)isSelected;

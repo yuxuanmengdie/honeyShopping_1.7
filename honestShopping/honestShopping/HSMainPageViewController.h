@@ -12,4 +12,7 @@
 
 @property (strong, nonatomic) NSArray *viewControllers;
 
+//重置到首页热销
+- (void)resetCate;
+
 @end
