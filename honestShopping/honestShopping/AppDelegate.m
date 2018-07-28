@@ -39,7 +39,10 @@
     [UMSocialConfig hiddenNotInstallPlatforms:@[UMShareToQQ,UMShareToQzone,UMShareToWechatSession,UMShareToWechatTimeline]];
     
     //设置微信AppId，设置分享url，默认使用友盟的网址
-    [UMSocialWechatHandler setWXAppId:@"wxf674afd7fa6b3db1" appSecret:@"768ef498760a90567afeac93211abfa9" url:kURLHeader];
+	
+	 //[UMSocialWechatHandler setWXAppId:@"wxf674afd7fa6b3db1" appSecret:@"768ef498760a90567afeac93211abfa9" url:kURLHeader];
+	
+	 [UMSocialWechatHandler setWXAppId:APP_ID appSecret:APP_SECRET url:kURLHeader];
     
     
     //打开新浪微博的SSO开关
@@ -176,7 +179,7 @@
         }
         
     }
-    else if ([string hasPrefix:APP_ID])
+    else if ([string hasPrefix:APP_ID] || [string hasPrefix:@"tencent1104470651"]) //qq 或微信登录
     {
         [WXApi handleOpenURL:url delegate:self];
     }
@@ -286,6 +289,7 @@
 // NOTE: 9.0以后使用新API接口
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString*, id> *)options
 {
+	
 	if ([url.host isEqualToString:@"safepay"]) {
 		// 支付跳转支付宝钱包进行支付，处理支付结果
 		[[AlipaySDK defaultService] processOrderWithPaymentResult:url standbyCallback:^(NSDictionary *resultDic) {
@@ -328,7 +332,14 @@
 			}
 			NSLog(@"授权结果 authCode = %@", authCode?:@"");
 		}];
+	} else if ([[url absoluteString] hasPrefix:@"tencent1104470651"])//qq 或微信登录
+	{
+		[UMSocialSnsService handleOpenURL:url];
+	} else if ([[url absoluteString] hasPrefix:APP_ID]){
+		[WXApi handleOpenURL:url delegate:self];
+		
 	}
+	[UMSocialSnsService handleOpenURL:url];
 	return YES;
 }
 
