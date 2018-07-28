@@ -1923,6 +1923,7 @@
                     </view>
                     <connections>
                         <outlet property="orderDetailTableView" destination="EDC-Ud-00g" id="Amf-89-4Qv"/>
+                        <outlet property="setBottomCons" destination="lsD-ND-Idh" id="wB7-j0-0c1"/>
                         <outlet property="settleView" destination="FiI-Ix-tdr" id="lbW-vf-NT8"/>
                     </connections>
                 </viewController>
