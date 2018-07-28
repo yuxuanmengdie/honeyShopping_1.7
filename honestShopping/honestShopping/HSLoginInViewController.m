@@ -306,15 +306,12 @@ static NSString *const kRemeberPWNormalImageName = @"icon_remeberPW_unsel";
             
             NSLog(@"username is %@, uid is %@, token is %@ url is %@ , ",snsAccount.userName,snsAccount.usid,snsAccount.accessToken,snsAccount.iconURL);
             [self loginInWithOtherID:[HSPublic controlNullString:snsAccount.openId] type:kWenxiLoginType userName:snsAccount.userName headerImgURL:snsAccount.iconURL];
-            
+	
+	
         }
         
     });
-    
-    //得到的数据在回调Block对象形参respone的data属性
-    [[UMSocialDataService defaultDataService] requestSnsInformation:UMShareToWechatSession  completion:^(UMSocialResponseEntity *response){
-        NSLog(@"SnsInformation is %@",response.data);
-    }];
+	
 }
 
 #pragma mark -
@@ -336,11 +333,6 @@ static NSString *const kRemeberPWNormalImageName = @"icon_remeberPW_unsel";
              [self loginInWithOtherID:[HSPublic controlNullString:snsAccount.openId] type:kQQLoginType userName:snsAccount.userName headerImgURL:snsAccount.iconURL];
             
         }});
-    
-    //获取accestoken以及QQ用户信息，得到的数据在回调Block对象形参respone的data属性
-    [[UMSocialDataService defaultDataService] requestSnsInformation:UMShareToQQ  completion:^(UMSocialResponseEntity *response){
-        NSLog(@"SnsInformation is %@",response.data);
-    }];
     
 }
 

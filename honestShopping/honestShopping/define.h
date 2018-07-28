@@ -269,7 +269,7 @@ static NSString *const kRemeberPassword = @"hs_remeberPassword";
 
 #pragma mark -
 #pragma mark 各平台的key
-static NSString *const kUMengAppKey = @"53290df956240b6b4a0084b3";//@"556e697267e58ee877007380"; /放心吃
+static NSString *const kUMengAppKey = @"53290df956240b6b4a0084b3";//@"556e697267e58ee877007380"; /放心吃  556e697267e58ee877007380
 /// 友盟推送
 static NSString *const kUMengPushMessageAppKey = @"556e697267e58ee877007380";
 
