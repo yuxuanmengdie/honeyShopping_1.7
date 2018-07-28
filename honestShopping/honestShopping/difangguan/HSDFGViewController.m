@@ -115,7 +115,7 @@ UITableViewDataSource>{
 		cell = [[HSDFGTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"HSDFGTableViewCell"];
 	}
 	HSDFGModel *model = _data[indexPath.row];
-	NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kImageHeaderURL,model.addr_url_img];
+	NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,model.addr_url_img];
 	[cell.imagView sd_setImageWithURL:[NSURL URLWithString:imgUrl] placeholderImage:kPlaceholderImage completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
 		if (image) {
 			NSValue *imgSize =  [NSValue valueWithCGSize:image.size];
@@ -144,7 +144,7 @@ UITableViewDataSource>{
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
 	HSDFGModel *model = _data[indexPath.row];
-	NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kImageHeaderURL,model.addr_url_img];
+	NSString *imgUrl = [NSString stringWithFormat:@"%@%@",kBannerImageHeaderURL,model.addr_url_img];
 	NSDictionary *dic = [self.imageSizeDic objectForKey:imgUrl];
 	
 	if (dic != nil) {
