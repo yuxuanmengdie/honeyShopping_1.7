@@ -24,9 +24,9 @@
 #import "HSBaseViewController.h"
 
 /// 服务器地址
-//#define kURLHeader @"http://cxg.139club.com"// 正式服务器
+#define kURLHeader @"http://cxg.139club.com"// 正式服务器
 
-#define kURLHeader @"http://221.226.28.43:9012"// 测试服务器
+//#define kURLHeader @"http://221.226.28.43:9012"// 测试服务器
 
 //#define kURLHeader @"http://wx.jshuabo.com:9013"// 加密测试服务器
 
