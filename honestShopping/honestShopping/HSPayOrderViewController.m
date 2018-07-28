@@ -52,6 +52,7 @@ UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *orderDetailTableView;
 
 @property (weak, nonatomic) IBOutlet HSSettleView *settleView;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *setBottomCons;
 
 @end
 
@@ -122,7 +123,11 @@ static const int kUpdateOrderMaxCount = 5;
     [_settleView.settltButton setTitle:@"支付订单" forState:UIControlStateNormal];
     _settleView.textLabel.text = [NSString stringWithFormat:@"%0.2f元",[self totolMoney]];
     if (![_orderModel.status isEqualToString:@"1"]) { /// 不是待支付
-        _settleView.settltButton.enabled = NO;
+        //_settleView.settltButton.enabled = NO;
+		_settleView.hidden = YES;
+		[self.view removeConstraint:_setBottomCons];
+		NSLayoutConstraint *btm = [NSLayoutConstraint constraintWithItem:_orderDetailTableView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeBottom multiplier:1.0 constant:0];
+		[self.view addConstraint:btm];
     }
     
     __weak typeof(self) wself = self;
@@ -824,6 +829,14 @@ static const int kUpdateOrderMaxCount = 5;
                     cell.aliPayButton.selected = NO;
                     cell.weixinPayButton.selected = YES;
                 }
+				if (![_orderModel.status isEqualToString:@"1"]) { //不为代付款，关闭选择
+					cell.aliPayButton.hidden = YES;
+					cell.weixinPayButton.hidden = YES;
+				}else{
+					cell.aliPayButton.hidden = NO;
+					cell.weixinPayButton.hidden = NO;
+				}
+				
                 __weak typeof(self) wself = self;
                 cell.payTypeBlock = ^(int type){ // 0 支付宝 1微信
                     __strong typeof(wself) swself = wself;
